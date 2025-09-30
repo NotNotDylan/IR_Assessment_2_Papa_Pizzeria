@@ -1,5 +1,5 @@
 import external_e_stop
-import flask_GUI
+from flask_GUI import FlaskGUI
 from logger import Logger
 import manipulatable_object
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement
@@ -19,7 +19,7 @@ def main():
     world.setup_robots_and_objects()
     
     # Initialize GUI (Flask app) and safety systems
-    gui = flask_GUI()
+    gui = FlaskGUI()
     estop = external_e_stop()
     logger = Logger()
     state = States(world)  # pass world or needed references to track state
@@ -39,7 +39,7 @@ def main():
     runner.run_loop()
     
     # After loop ends (e.g., simulation stopped), hold the environment open
-    world.env.hold()  # Keep Swift window open (if needed for viewing after stop)
+    # world.env.hold()  # Keep Swift window open (if needed for viewing after stop)
     
     
 if __name__ == '__main__':

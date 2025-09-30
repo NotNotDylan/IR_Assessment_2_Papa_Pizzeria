@@ -1,11 +1,16 @@
 from manipulatable_object import ManipulatableObject
 
+import swift
+import roboticstoolbox as rtb
+from ir_support import LinearUR3
 from spatialmath import SE3
+from spatialmath.base import *
+from math import pi
 
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
-        self.env = None            # The Swift environment (or other simulator) instance
+        self.env = swift.Swift()   # The Swift environment (or other simulator) instance
         self.robot1 = None         # Robot performing sauce application
         self.robot2 = None         # Robot performing topping placement
         self.robot3 = None         # Robot handling oven loading/unloading
@@ -73,7 +78,7 @@ class ConveyorBelt:
         self.speed = speed           # movement speed (units per second) along conveyor
         self.active = True           # whether the conveyor is currently moving or stopped
     
-    def move_object(self, obj: "ManipulatableObject", dt: float) -> bool:
+    def move_object(self, obj: ManipulatableObject, dt: float) -> bool:
         """Move the given object along the conveyor by distance = speed*dt.
         Returns True if object has reached the end of conveyor."""
         # TODO: Compute movement along conveyor direction.
