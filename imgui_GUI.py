@@ -249,9 +249,11 @@ class GUIImGui:
                 imgui.pop_item_width()
                 self._q_shadow[rid] = q
 
-                if imgui.button("Apply Joints", width=160):
-                    # Emit set_q — your runner can either apply directly or plan a trajectory
-                    self._events.append(('set_q', {'robot_id': rid, 'q': list(q)}))
+                # if imgui.button("Apply Joints", width=160):
+                #     # Emit set_q — your runner can either apply directly or plan a trajectory
+                #     self._events.append(('set_q', {'robot_id': rid, 'q': list(q)}))
+                
+                self._events.append(('set_q', {'robot_id': rid, 'q': list(q)})) # Live updating
 
                 imgui.same_line()
                 if imgui.button("Refresh", width=120):
@@ -366,7 +368,7 @@ if __name__ == "__main__":
         gui.tick()
         events = gui.get_and_clear_events()
         for evt, payload in events:
-            print(f"Event: {evt}, Payload: {payload}")
+            print(f"Event: {evt}, Payload: {payload}") # It's printing so much due to live updating joint location from sliders
         time.sleep(0.01)
         if not gui._window:
             break
