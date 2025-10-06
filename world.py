@@ -49,7 +49,8 @@ class World:
         # Position robots in the scene (adjust base if needed, e.g., robot1.base = SE3(x,y,z))
         # Add robots to the Swift environment: self.env.add(self.robot1)
         
-        self.env.add(self.robot_test)
+        # self.env.add(self.robot_test)
+        self.robot_test.add_to_env(self.env)
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
