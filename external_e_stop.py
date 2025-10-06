@@ -1,5 +1,5 @@
 # if using pyserial for Arduino comm (ensure to install pyserial)
-import serial  # type: ignore
+import serial
 
 class ExternalEStop:
     """Handles input from a physical emergency stop button (via Arduino) asynchronously."""

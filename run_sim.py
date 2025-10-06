@@ -1,5 +1,5 @@
 import external_e_stop
-import flask_GUI
+import imgui_GUI #TODO: Change all of the Flask_GUI functions to imgui functions
 from logger import Logger
 import manipulatable_object
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement
@@ -16,7 +16,7 @@ from spatialmath import SE3
 
 class Run:
     """Main controller for running the simulation loop and coordinating all components."""
-    def __init__(self, world: World, gui: flask_GUI, estop: external_e_stop, 
+    def __init__(self, world: World, gui: imgui_GUI, estop: external_e_stop, 
                  state: States, logger: Logger, motions: list):
         self.world = world
         self.gui = gui

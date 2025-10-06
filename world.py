@@ -2,7 +2,7 @@ from manipulatable_object import ManipulatableObject
 
 import swift
 import roboticstoolbox as rtb
-from ir_support import LinearUR3
+from ir_support import UR3
 from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
@@ -10,7 +10,8 @@ from math import pi
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
-        self.env = swift.Swift()   # The Swift environment (or other simulator) instance
+        self.env = swift.Swift()   # The Swift environment instance
+        self.robot_test = UR3()    # Robot I am using to temporaly test the GUI
         self.robot1 = None         # Robot performing sauce application
         self.robot2 = None         # Robot performing topping placement
         self.robot3 = None         # Robot handling oven loading/unloading
@@ -21,7 +22,7 @@ class World:
         self.objects = []          # List to hold other objects (pizzas, toppings, etc. currently in scene)
         # (Other environment attributes can be added as needed)
     
-    def launch(self):
+    def launch(self, environment_objects: bool = False):
         """Start the simulator and set up the static scene (floor, walls, etc.)."""
         # TODO: Create and launch the Swift environment
         # Example:
@@ -30,7 +31,16 @@ class World:
         # Add floor or background:
         # floor = geometry.Box(..., pose=SE3(0,0,-0.01), color=(0.5,0.5,0.5,1))
         # self.env.add(floor)
-        pass
+        
+        if environment_objects == True:
+            # Walls
+            # Floor
+            # Safety
+            # Decorations
+            # Oven
+            pass
+        
+        self.env.launch(realtime=True)
     
     def setup_robots_and_objects(self):
         """Load robots, conveyors, and objects into the environment."""
@@ -38,7 +48,9 @@ class World:
         # e.g., self.robot1 = rtb.models.DH.SomeRobotModel() or custom Robot class
         # Position robots in the scene (adjust base if needed, e.g., robot1.base = SE3(x,y,z))
         # Add robots to the Swift environment: self.env.add(self.robot1)
-        #
+        
+        self.env.add(self.robot_test)
+        
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
         # self.conveyors.append(conv1)
@@ -51,7 +63,6 @@ class World:
         #
         # TODO: Add any safety barriers or light curtain visuals (if any)
         # e.g., a transparent plane or lines indicating the light curtain region.
-        pass
     
     def add_object(self, obj):
         """Add a manipulatable object (pizza, topping, etc.) to the environment and keep track of it."""
