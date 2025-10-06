@@ -9,6 +9,7 @@ import step_environment
 from world import World
 
 from ir_support import DHRobot3D
+import numpy as np
 
 def main():
     """Main entry point: Initialize world, robots, GUI, and run the simulation."""
@@ -22,18 +23,32 @@ def main():
     
     # Initialize GUI and safety systems
     gui = GUIImGui()
-    estop = external_e_stop()
-    logger = Logger()
+    # estop = external_e_stop()
+    # logger = Logger()
     state = States(world)  # pass world or needed references to track state
     
     # Bind robots to GUI via small adapters
     def adapter(robot_model: DHRobot3D):
+
+        qlim_pairs = [(-2*np.pi, 2*np.pi)] * len(robot_model.q)  # fallback
+        qlim_arr = getattr(robot_model, 'qlim', None)
+
+        # Ensures thevalues are in the correct shape as to not trip up the GUI
+        if qlim_arr is not None:
+            qa = np.asarray(qlim_arr, dtype=float)
+            if qa.ndim == 2:
+                if qa.shape[0] == 2:          # 2 x N  → transpose to N x 2
+                    qlim_pairs = [tuple(row) for row in qa.T]
+                elif qa.shape[1] == 2:        # N x 2
+                    qlim_pairs = [tuple(row) for row in qa]
+            # else leave fallback
+
         return {
             'name': robot_model.__class__.__name__,
             'get_q': lambda: list(robot_model.q),
-            'set_q': lambda q: setattr(robot_model, 'q', q),   # optional direct apply
-            'qlim': list(robot_model.qlim) if hasattr(robot_model, 'qlim') else [(-3.14, 3.14)] * len(robot_model.q),
-            'dof': len(robot_model.q),
+            'set_q': lambda q: setattr(robot_model, 'q', q),
+            'qlim': qlim_pairs,
+            'dof' : len(robot_model.q),
         }
 
     # robots_dict = {
@@ -58,7 +73,7 @@ def main():
                Robot4Movement(world.robot4)]
     
     # Create the main runner and pass all components
-    runner = Run(world=world, gui=None, estop=estop, state=state, logger=logger, motions=motions)
+    runner = Run(world=world, gui=gui, estop=None, state=state, logger=None, motions=motions)
     
     # Start the main simulation loop (this will run until stopped)
     runner.run_loop()

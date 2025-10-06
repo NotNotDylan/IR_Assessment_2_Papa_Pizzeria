@@ -1,5 +1,5 @@
 import external_e_stop
-import imgui_GUI #TODO: Change all of the Flask_GUI functions to imgui functions
+from imgui_GUI import GUIImGui
 from logger import Logger
 import manipulatable_object
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement
@@ -16,7 +16,7 @@ from spatialmath import SE3
 
 class Run:
     """Main controller for running the simulation loop and coordinating all components."""
-    def __init__(self, world: World, gui: imgui_GUI, estop: external_e_stop, 
+    def __init__(self, world: World, gui: GUIImGui, estop: external_e_stop, 
                  state: States, logger: Logger, motions: list):
         self.world = world
         self.gui = gui
@@ -31,6 +31,30 @@ class Run:
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
         while self.running:
+            # Update GUI and process events
+            if self.gui:
+                self.gui.tick()
+                events = self.gui.get_and_clear_events()
+                
+                # Handle GUI events
+                for event_name, payload in events:
+                    if event_name == 'stop_program':
+                        self.running = False
+                        break
+                    elif event_name == 'set_q' and payload:
+                        # Apply joint angles from GUI sliders to robot
+                        robot_id = payload.get('robot_id')
+                        q = payload.get('q')
+                        if robot_id == 1 and q:  # Using robot_test (robot_id=1)
+                            self.world.robot_test.q = q
+            
+            # Step the environment to update visuals
+            self.world.env.step(0.05)
+            
+            # Small sleep to prevent excessive CPU usage
+            time.sleep(0.01)
+            
+            ''' Structure I can follow:
             # 1. Check for emergency stop signals (hardware or GUI e-stop)
             if self.estop.check_stop() or self.gui.estop_pressed:
                 # If an e-stop is triggered, log it and enter a paused state
@@ -74,6 +98,7 @@ class Run:
             if self.gui.stop_pressed:
                 self.logger.log_event("Stop button pressed. Exiting simulation loop.")
                 self.running = False
+                '''
         
         # End of loop - clean up if necessary (e.g., close env if not holding)
         # (The world.env.hold() call can be done after this function returns.)
