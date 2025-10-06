@@ -32,6 +32,9 @@ class World:
         # floor = geometry.Box(..., pose=SE3(0,0,-0.01), color=(0.5,0.5,0.5,1))
         # self.env.add(floor)
         
+        self.env.launch(realtime=True)
+        
+        
         if environment_objects == True:
             # Walls
             # Floor
@@ -40,7 +43,6 @@ class World:
             # Oven
             pass
         
-        self.env.launch(realtime=True)
     
     def setup_robots_and_objects(self):
         """Load robots, conveyors, and objects into the environment."""

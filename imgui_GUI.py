@@ -255,8 +255,8 @@ class GUIImGui:
                 
                 self._events.append(('set_q', {'robot_id': rid, 'q': list(q)})) # Live updating
 
-                imgui.same_line()
-                if imgui.button("Refresh", width=120):
+                # imgui.same_line()
+                if imgui.button("Refresh", width=120): # TODO: Fix (not working) this need to set robot back to initial state (all zeros would be easiest)
                     try:
                         self._q_shadow[rid] = list(meta['get_q']())
                     except Exception:
