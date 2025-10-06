@@ -2,8 +2,8 @@
 
 Dylan:
 
+- Getting teach functonality through the GUI to work with the panada robot
 - Make and modle robot
-- Make teach GUI so we can test our robots
 
 Aiden:
 
