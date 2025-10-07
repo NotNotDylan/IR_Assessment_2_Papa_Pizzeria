@@ -84,16 +84,21 @@ class IRB2400(DHRobot3D):
         self.variant = variant
         self.mounting = mounting
 
+
+        # Un-edited = masive stl in m
+        # edited = scaled correctly (from m to mm)
+        # editedv2 = origen moved to aproprate location
+        # editedv3 = z axis aligned with rotation
+         
         # File basenames for your link models (no extension here; DHRobot3D will try .dae/.stl)
         link3D_names = dict(
-            #link0="base_irb2400",
-            link0="untitled",
-            link1="shoulder_irb2400",
-            link2="upperarm_irb2400",
-            link3="forearm_irb2400",
-            link4="wrist1_irb2400",
-            link5="wrist2_irb2400",
-            link6="wrist3_irb2400",
+            link0="base_irb2400_edited",
+            link1="shoulder_irb2400_editedv3", # x 90
+            link2="upperarm_irb2400_editedv3", # x 90
+            link3="forearm_irb2400_editedv3",  # y -90
+            link4="wrist1_irb2400_editedv3",   # x -90
+            link5="wrist2_irb2400_editedv3",   # y -90
+            link6="wrist3_irb2400_editedv3",   # y -90
         )
 
         # A convenient "inspection" configuration to align meshes (“zero-like” with elbow down)
@@ -110,6 +115,16 @@ class IRB2400(DHRobot3D):
             spb.transl(0, 0, 1.10) @ spb.rpy2tr(0, -pi/2, pi, order="xyz"),  # wrist1
             spb.transl(0, 0, 1.18) @ spb.rpy2tr(0, -pi/2, pi, order="xyz"),  # wrist2
             spb.transl(0, 0, 1.26) @ spb.trotz(pi),      # wrist3 (flange)
+        ]
+        
+        qtest_transforms = [
+            spb.transl(0, 0, 0),                         # link0: base casting
+            spb.transl(0.097, -0.1   , 0.615) @ spb.trotx(-pi/2),        # link1: shoulder
+            spb.transl(0.0705, 0.1, 1.32)  @ spb.trotx(-pi/2),       # link2: upper arm
+            spb.transl(0.364, 0     , 1.455) @ spb.troty(pi/2),       # link3: forearm
+            spb.transl(0.855, 0.0205, 1.455) @ spb.trotx(pi/2),   # wrist1
+            spb.transl(0.906, 0     , 1.455) @ spb.troty(pi/2),   # wrist2
+            spb.transl(0.94 , 0     , 1.455) @ spb.troty(pi/2),       # wrist3 (flange)
         ]
 
         current_path = os.path.abspath(os.path.dirname(__file__))
@@ -167,7 +182,7 @@ class IRB2400(DHRobot3D):
         env = swift.Swift()
         env.launch(realtime=True)
         
-        create_minimal_axes(env)
+        # create_minimal_axes(env)
 
         # Set a base offset so the robot isn't on the origin if you like
         # self.base = SE3(0.4, 0.4, 0) if self.mounting == "floor" else SE3(0.4, 0.4, 1.6) * SE3.Rx(pi)
@@ -177,11 +192,11 @@ class IRB2400(DHRobot3D):
         qtraj = rtb.jtraj(self.q, q_goal, 80).q
         for q in qtraj:
             self.q = q
+            # fig = self.plot(self.q)
             env.step(0.02)
         time.sleep(2)
         # env.hold()
-        # (use env.hold() interactively if needed)
-        
+        # (use env.hold() interactively if needed)       
 
 if __name__ == "__main__":
     IRB2400().test()
