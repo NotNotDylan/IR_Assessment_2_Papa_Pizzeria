@@ -2,7 +2,7 @@ import external_e_stop
 from imgui_GUI import GUIImGui
 from logger import Logger
 import manipulatable_object
-from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement
+from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement, MovementCalculation
 from states import States
 import step_environment
 from world import World
@@ -26,27 +26,66 @@ class Run:
         self.motions = motions  # list of robot motion controller objects
         self.running = True
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop)
+        
+    def handle_gui(self):
+        # Update GUI and process events
+        if self.gui:
+            self.gui.tick()
+            events = self.gui.get_and_clear_events()
+            
+            # Handle GUI events
+            for event_name, payload in events:
+                if payload is not None:
+                    
+                    # Coppy active robot object so it can be modified later on
+                    robot_id = payload.get('robot_id')                                              
+                    if robot_id == 1: 
+                        active_robot = self.world.robot_test
+                    elif robot_id == 2:  #TODO: Add in the respective robots acording to their id
+                        pass
+                    elif robot_id == 3:
+                        pass
+                    elif robot_id == 4:
+                        pass
+                    
+                    if event_name == 'stop_program':
+                        self.running = False
+                        break
+                    elif event_name == 'set_q' and payload is not None:
+                        # Apply joint angles from GUI sliders to robot
+                        q = payload.get('q')
+                        active_robot.q = q
+                    elif event_name == 'jog_cart' and payload is not None:
+                        # Get current end-effector pose via forward kinematics
+                        se3_current = active_robot.fkine(active_robot.q)
+                        
+                        # Extract jog deltas from payload
+                        dx = payload.get('dx', 0)
+                        dy = payload.get('dy', 0)
+                        dz = payload.get('dz', 0)
+                        droll = payload.get('droll', 0)
+                        dpitch = payload.get('dpitch', 0)
+                        dyaw = payload.get('dyaw', 0)
+                        
+                        # Create a delta SE3 transform from jog values
+                        delta_se3 = SE3(dx, dy, dz) * SE3.RPY([droll, dpitch, dyaw], order='xyz')
+                        
+                        # Compute new target pose by applying delta to current pose
+                        se3_target = se3_current * delta_se3
+                        
+                        # Use inverse kinematics to get joint angles for new pose
+                        q_new = MovementCalculation.inverse_kinematics(active_robot, se3_target, se3_current)
+                        
+                        # Apply new joint angles to robot
+                        active_robot.q = q_new
     
     def run_loop(self):
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
         while self.running:
-            # Update GUI and process events
-            if self.gui:
-                self.gui.tick()
-                events = self.gui.get_and_clear_events()
-                
-                # Handle GUI events
-                for event_name, payload in events:
-                    if event_name == 'stop_program':
-                        self.running = False
-                        break
-                    elif event_name == 'set_q' and payload:
-                        # Apply joint angles from GUI sliders to robot
-                        robot_id = payload.get('robot_id')
-                        q = payload.get('q')
-                        if robot_id == 1 and q:  # Using robot_test (robot_id=1)
-                            self.world.robot_test.q = q
+            
+            # Update GUI and process events  
+            self.handle_gui()
             
             # Step the environment to update visuals
             self.world.env.step(0.05)

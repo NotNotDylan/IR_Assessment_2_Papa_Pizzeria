@@ -3,6 +3,7 @@ from manipulatable_object import Topping
 
 import numpy as np
 from spatialmath import SE3
+import roboticstoolbox as rtb
 
 class MovementCalculation:
     """Base class for robot movement calculations: kinematics, path planning, and safety checks."""
@@ -19,11 +20,19 @@ class MovementCalculation:
         # Use RTB forward kinematics:
         return self.robot.fkine(q)
     
-    def inverse_kinematics(self, target_pose: SE3):
+    def inverse_kinematics(self, active_robot, target_pose: SE3, q_seed):
         """Solve inverse kinematics for the robot to reach the target_pose. Returns joint angles solution."""
         # TODO: Use RTB's IK solver or implement one.
         # e.g., sol = self.robot.ikine_LMS(target_pose)  (if using RTB's ikine methods)
         # return sol.q
+        self.robot.ikine_LM(
+                target_pose,
+                q0=q_seed,
+                ilimit=30, # Max number of itterations (Reduce for faster but may not get within tolarance)
+                tol=1e-6, # Once within tolarance it will stop itterating inverse kinimatics
+                mask=np.array([1, 1, 1, 1, 1, 1]),
+                joint_limits=active_robot.qlim
+            )
         return None
     
     def compute_jacobian(self, q=None):
