@@ -92,7 +92,7 @@ class IRB2400(DHRobot3D):
          
         # File basenames for your link models (no extension here; DHRobot3D will try .dae/.stl)
         link3D_names = dict(
-            link0="base_irb2400_edited",
+            link0="base_irb2400_edited",       # Notes for how I rotated the model for editedv3
             link1="shoulder_irb2400_editedv3", # x 90
             link2="upperarm_irb2400_editedv3", # x 90
             link3="forearm_irb2400_editedv3",  # y -90
