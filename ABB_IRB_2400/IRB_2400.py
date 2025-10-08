@@ -31,35 +31,7 @@ from spatialgeometry import Arrow
 
 from ir_support.robots.DHRobot3D import DHRobot3D
 
-
-def create_minimal_axes(env, scale=3.0, radius=0.01, head_scale=0.5, head_radius=0.1):
-        """Create XYZ coordinate axis arrows for spatial reference in the scene.
-        
-        Adds three colored arrows (Red=X, Green=Y, Blue=Z) to help visualize
-        the coordinate system and spatial relationships in the 3D environment.
-        """
-        axes_objects = []
-        
-        # Positive X-axis (Red)
-        x_pos = Arrow(length=scale, radius=radius, head_length=head_scale, head_radius=head_radius, color=[1.0, 0.0, 0.0, 1.0])
-        x_pos.T = SE3.Ry(pi/2).A  # Points along +X from origin
-        env.add(x_pos)
-        axes_objects.append(x_pos)
-
-        # Positive Y-axis (Green)
-        y_pos = Arrow(length=scale, radius=radius, head_length=head_scale, head_radius=head_radius, color=[0.0, 1.0, 0.0, 1.0])
-        y_pos.T = SE3.Rx(-pi/2).A  # Points along +Y from origin
-        env.add(y_pos)
-        axes_objects.append(y_pos)
-
-        # Positive Z-axis (Blue)
-        z_pos = Arrow(length=scale, radius=radius, head_length=head_scale, head_radius=head_radius, color=[0.0, 0.0, 1.0, 1.0])
-        z_pos.T = SE3(0, 0, 0).A  # Points along +Z from origin
-        env.add(z_pos)
-        axes_objects.append(z_pos)
-        
-        return axes_objects
-    
+ 
     
 def deg2rad(degrees):
     """Convert degrees to radians."""
@@ -79,10 +51,9 @@ class IRB2400(DHRobot3D):
     """
 
     # ------------------------------
-    def __init__(self, variant: str = "2400_16", mounting: str = "floor"):
+    def __init__(self, variant: str = "2400_16"):
         links = self._create_DH()
         self.variant = variant
-        self.mounting = mounting
 
 
         # Un-edited = masive stl in m
@@ -106,17 +77,7 @@ class IRB2400(DHRobot3D):
 
         # INITIAL GUESSES for aligning 3D meshes to the DH frames at qtest.
         # Start simple: place each mesh near its joint frame; refine interactively later.
-        # You will tune these using the steps in the guide below.
-        qtest_transforms = [
-            spb.transl(0, 0, 0),                         # link0: base casting
-            spb.transl(0, 0, 0.1) @ spb.trotz(pi),       # link1: shoulder
-            spb.transl(0, 0, 0.45) @ spb.trotz(pi),      # link2: upper arm
-            spb.transl(0, 0, 0.90) @ spb.trotz(pi),      # link3: forearm
-            spb.transl(0, 0, 1.10) @ spb.rpy2tr(0, -pi/2, pi, order="xyz"),  # wrist1
-            spb.transl(0, 0, 1.18) @ spb.rpy2tr(0, -pi/2, pi, order="xyz"),  # wrist2
-            spb.transl(0, 0, 1.26) @ spb.trotz(pi),      # wrist3 (flange)
-        ]
-        
+        # You will tune these using the steps in the guide below.        
         qtest_transforms = [
             spb.transl(0, 0, 0),                         # link0: base casting
             spb.transl(0.097, -0.1   , 0.615) @ spb.trotx(-pi/2),        # link1: shoulder
@@ -140,26 +101,23 @@ class IRB2400(DHRobot3D):
 
         # Set starting pose (also applies inverted mounting if chosen)
         self.q = qtest
-        if mounting == "inverted":
-            self.base = SE3.Rx(pi)  # hang it upside down
 
     # ------------------------------
     def _create_DH(self):
         """
         Create standard DH model.
-
-        IMPORTANT:
-        ABB does not publish a canonical DH for IRB2400; you must verify these
-        against CAD. The values below are *scaffold* defaults sized roughly to the
-        1.55 m reach envelope and should be replaced by your measured DH.
         """
-        # --- Replace these with derived values from your CAD ---
-        # A simple, workable scaffold (S-shoulder, L-upperarm, U-forearm 3R wrist):
-        # axis   d (m)     a (m)     alpha (rad)     qlim (rad)
-        d =     [0.755,    0.000,    0.000,         0.000,      0.000,      0.000]
-        a =     [0.000,   -0.450,   -0.700,         0.000,      0.000,      0.000]
-        alpha = [pi/2,     0.000,    0.000,         pi/2,      -pi/2,       0.000]
+        # --- Derived values from your CAD ---
+        # axis   d (m)=displacment along z     a (m)=length between     alpha (rad)=rot around x     qlim (rad)
+        # a     = [ 0.097,  0.706,  0.135,  0.000,   0.000,  0.000 ]
+        # d     = [ 0.615, -0.200,  0.100,  0.491,  -0.0205, 0.034 ]
+        # alpha = [ +pi/2,  0.0,   +pi/2,  +pi/2,   +pi/2,   0.0  ]
         # Axis ranges from ABB spec (convert degrees to radians)
+        
+        a     = [ 0.100,  0.705, 0.135,  0.755 ,   0.000,  0.000 ]
+        d     = [ 0.615,  0.0  ,   0.0,  0     ,  -0.0205, 0.034 ]
+        alpha = [ +pi/2,    0.0, -pi/2,  +pi/2 ,   +pi/2,   0.0  ]  
+           
         qlim = [
             [-pi, +pi],                            # A1 ±180°
             [deg2rad(-100), deg2rad(+110)],        # A2 -100..+110
@@ -198,5 +156,8 @@ class IRB2400(DHRobot3D):
         # env.hold()
         # (use env.hold() interactively if needed)       
 
-if __name__ == "__main__":
+
+
+
+if __name__ == "__main__":    
     IRB2400().test()

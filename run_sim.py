@@ -35,49 +35,49 @@ class Run:
             
             # Handle GUI events
             for event_name, payload in events:
-                if payload is not None:
+                # if payload is not None:
                     
-                    # Coppy active robot object so it can be modified later on
-                    robot_id = payload.get('robot_id')                                              
-                    if robot_id == 1: 
-                        active_robot = self.world.robot_test
-                    elif robot_id == 2:  #TODO: Add in the respective robots acording to their id
-                        pass
-                    elif robot_id == 3:
-                        pass
-                    elif robot_id == 4:
-                        pass
+                # Coppy active robot object so it can be modified later on
+                robot_id = payload.get('robot_id')                                              
+                if robot_id == 1: 
+                    active_robot = self.world.robot_test
+                elif robot_id == 2:  #TODO: Add in the respective robots acording to their id
+                    pass
+                elif robot_id == 3:
+                    pass
+                elif robot_id == 4:
+                    pass
+                
+                if event_name == 'stop_program':
+                    self.running = False
+                    break
+                elif event_name == 'set_q' and payload is not None:
+                    # Apply joint angles from GUI sliders to robot
+                    q = payload.get('q')
+                    active_robot.q = q
+                elif event_name == 'jog_cart' and payload is not None:
+                    # Get current end-effector pose via forward kinematics
+                    se3_current = active_robot.fkine(active_robot.q)
                     
-                    if event_name == 'stop_program':
-                        self.running = False
-                        break
-                    elif event_name == 'set_q' and payload is not None:
-                        # Apply joint angles from GUI sliders to robot
-                        q = payload.get('q')
-                        active_robot.q = q
-                    elif event_name == 'jog_cart' and payload is not None:
-                        # Get current end-effector pose via forward kinematics
-                        se3_current = active_robot.fkine(active_robot.q)
-                        
-                        # Extract jog deltas from payload
-                        dx = payload.get('dx', 0)
-                        dy = payload.get('dy', 0)
-                        dz = payload.get('dz', 0)
-                        droll = payload.get('droll', 0)
-                        dpitch = payload.get('dpitch', 0)
-                        dyaw = payload.get('dyaw', 0)
-                        
-                        # Create a delta SE3 transform from jog values
-                        delta_se3 = SE3(dx, dy, dz) * SE3.RPY([droll, dpitch, dyaw], order='xyz')
-                        
-                        # Compute new target pose by applying delta to current pose
-                        se3_target = se3_current * delta_se3
-                        
-                        # Use inverse kinematics to get joint angles for new pose
-                        q_new = MovementCalculation.inverse_kinematics(active_robot, se3_target, se3_current)
-                        
-                        # Apply new joint angles to robot
-                        active_robot.q = q_new
+                    # Extract jog deltas from payload
+                    dx = payload.get('dx', 0)
+                    dy = payload.get('dy', 0)
+                    dz = payload.get('dz', 0)
+                    droll = payload.get('droll', 0)
+                    dpitch = payload.get('dpitch', 0)
+                    dyaw = payload.get('dyaw', 0)
+                    
+                    # Create a delta SE3 transform from jog values
+                    delta_se3 = SE3(dx, dy, dz) * SE3.RPY([droll, dpitch, dyaw], order='xyz')
+                    
+                    # Compute new target pose by applying delta to current pose
+                    se3_target = se3_current * delta_se3
+                    
+                    # Use inverse kinematics to get joint angles for new pose
+                    q_new = MovementCalculation.inverse_kinematics(active_robot, se3_target, se3_current)
+                    
+                    # Apply new joint angles to robot
+                    active_robot.q = q_new
     
     def run_loop(self):
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
