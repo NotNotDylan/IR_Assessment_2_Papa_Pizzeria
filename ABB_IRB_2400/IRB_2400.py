@@ -79,13 +79,13 @@ class IRB2400(DHRobot3D):
         # Start simple: place each mesh near its joint frame; refine interactively later.
         # You will tune these using the steps in the guide below.        
         qtest_transforms = [
-            spb.transl(0, 0, 0),                         # link0: base casting
-            spb.transl(0.097, -0.1   , 0.615) @ spb.trotx(-pi/2),        # link1: shoulder
-            spb.transl(0.0705, 0.1, 1.32)  @ spb.trotx(-pi/2),       # link2: upper arm
-            spb.transl(0.364, 0     , 1.455) @ spb.troty(pi/2),       # link3: forearm
-            spb.transl(0.855, 0.0205, 1.455) @ spb.trotx(pi/2),   # wrist1
-            spb.transl(0.906, 0     , 1.455) @ spb.troty(pi/2),   # wrist2
-            spb.transl(0.94 , 0     , 1.455) @ spb.troty(pi/2),       # wrist3 (flange)
+            spb.transl(0, 0, 0),                                     # link0: base casting
+            spb.transl(0.097, -0.1   , 0.615) @ spb.trotx(-pi/2),    # link1: shoulder
+            spb.transl(0.0705, 0.1, 1.32)     @ spb.trotx(-pi/2),    # link2: upper arm
+            spb.transl(0.364, 0     , 1.455)  @ spb.troty(pi/2),     # link3: forearm
+            spb.transl(0.855, 0.0205, 1.455)  @ spb.trotx(pi/2),     # wrist1
+            spb.transl(0.906, 0     , 1.455)  @ spb.troty(pi/2),     # wrist2
+            spb.transl(0.94 , 0     , 1.455)  @ spb.troty(pi/2),     # wrist3 (flange)
         ]
 
         current_path = os.path.abspath(os.path.dirname(__file__))
@@ -113,10 +113,10 @@ class IRB2400(DHRobot3D):
         # d     = [ 0.615, -0.200,  0.100,  0.491,  -0.0205, 0.034 ]
         # alpha = [ +pi/2,  0.0,   +pi/2,  +pi/2,   +pi/2,   0.0  ]
         # Axis ranges from ABB spec (convert degrees to radians)
-        
-        a     = [ 0.100,  0.705, 0.135,  0.755 ,   0.000,  0.000 ]
-        d     = [ 0.615,  0.0  ,   0.0,  0     ,  -0.0205, 0.034 ]
-        alpha = [ +pi/2,    0.0, -pi/2,  +pi/2 ,   +pi/2,   0.0  ]  
+        a     =  [ 0.100,  -0.705, 0.135,  0.0 ,   0.000,  0.000 ]
+        d     =  [ 0.615,  0.0  ,  0    ,  0.755   , 0.0, 0.034 ]
+        alpha =  [ +pi/2,    0.0, +pi/2,  +pi/2 ,   +pi/2,   0.0  ]  
+        offset = [     0,      0, +pi/2,  0     ,        0,      0]
            
         qlim = [
             [-pi, +pi],                            # A1 ±180°
@@ -129,7 +129,7 @@ class IRB2400(DHRobot3D):
 
         links = []
         for i in range(6):
-            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], qlim=qlim[i]))
+            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], offset=offset[i], qlim=qlim[i]))
         return links
 
     # ------------------------------
@@ -137,21 +137,21 @@ class IRB2400(DHRobot3D):
         """
         Smoke-test: add to Swift, jog a bit, then pause.
         """
-        env = swift.Swift()
-        env.launch(realtime=True)
+        # env = swift.Swift()
+        # env.launch(realtime=True)
         
         # create_minimal_axes(env)
 
         # Set a base offset so the robot isn't on the origin if you like
         # self.base = SE3(0.4, 0.4, 0) if self.mounting == "floor" else SE3(0.4, 0.4, 1.6) * SE3.Rx(pi)
-        self.add_to_env(env)
+        # self.add_to_env(env)
 
         q_goal = [self.q[i] - pi/8 for i in range(self.n)]
-        qtraj = rtb.jtraj(self.q, q_goal, 80).q
+        qtraj = rtb.jtraj(self.q, q_goal, 20).q
         for q in qtraj:
             self.q = q
-            # fig = self.plot(self.q)
-            env.step(0.02)
+            fig = self.plot(self.q)
+            # env.step(0.02)
         time.sleep(2)
         # env.hold()
         # (use env.hold() interactively if needed)       
