@@ -11,6 +11,8 @@ import time
 from spatialgeometry import Sphere, Arrow, Mesh
 import spatialgeometry as geometry
 import os
+import spatialmath.base as spb
+from spatialmath import SE3
 
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
@@ -50,12 +52,12 @@ class World:
                         color=(1.0,1.0,0.0,1.0))
             self.env.add(floor)
 
-        #    Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.2.stl"),
-         #               color=(0.827,0.827,0.827,1.0))
-         #   self.env.add(Conveyer_One)
+            Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.2.stl"),
+                       color=(0.5,0.5,0.5,1.0))
+            self.env.add(Conveyer_One)
 
             Conveyer_Two = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Second_Conveyer2.0.1.stl"),
-                        color=(0.827,0.827,0.827,1.0))
+                        color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_Two)
 
             Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
@@ -63,9 +65,24 @@ class World:
             self.env.add(Pizza_Oven)
 
             Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
-                        color=(0.0,0.0,0.0))
+                        color=(0.1,0.1,0.1,1.0))
             self.env.add(Light_Fence_Post)
-            
+
+            Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(6.97, 5.5, 0), scale=[1,1,0.5])
+            self.env.add(Pillar_1)
+
+            Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(9.72, 5.6, 0), scale=[1,1,0.5])
+            self.env.add(Pillar_2)
+
+            Pillar_3 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(4.6, 4.05, 0))
+            self.env.add(Pillar_3)
+
+            Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
+            self.env.add(Pillar_4)
             # Floor
             # Safety
             # Decorations
