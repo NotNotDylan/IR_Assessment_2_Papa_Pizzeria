@@ -99,6 +99,7 @@ class World:
         
         # self.env.add(self.robot_test)
         self.robot_test.add_to_env(self.env)
+        self.robot_test.base = SE3(6.97,5.5,0.5)
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
