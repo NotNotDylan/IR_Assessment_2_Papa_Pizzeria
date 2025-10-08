@@ -7,6 +7,10 @@ from ABB_IRB_2400.IRB_2400 import IRB2400
 from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
+import time 
+from spatialgeometry import Sphere, Arrow, Mesh
+import spatialgeometry as geometry
+import os
 
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
@@ -38,6 +42,30 @@ class World:
         
         if environment_objects == True:
             # Walls
+            wall = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Wall.stl"),
+                        color=(1.0,1.0,1.0,1.0))
+            self.env.add(wall)
+
+            floor = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Floor.stl"),
+                        color=(1.0,1.0,0.0,1.0))
+            self.env.add(floor)
+
+        #    Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.2.stl"),
+         #               color=(0.827,0.827,0.827,1.0))
+         #   self.env.add(Conveyer_One)
+
+            Conveyer_Two = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Second_Conveyer2.0.1.stl"),
+                        color=(0.827,0.827,0.827,1.0))
+            self.env.add(Conveyer_Two)
+
+            Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
+                        color=(0.886,0.447,0.357,1.0))
+            self.env.add(Pizza_Oven)
+
+            Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
+                        color=(0.0,0.0,0.0))
+            self.env.add(Light_Fence_Post)
+            
             # Floor
             # Safety
             # Decorations
