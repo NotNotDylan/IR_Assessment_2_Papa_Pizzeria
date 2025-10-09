@@ -27,6 +27,13 @@ class Run:
         self.running = True
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop)
         
+        # Creating only one instance of the robot movment and calcuation objects
+        self.robot_test_motion = MovementCalculation(self.world.robot_test)
+        # self.robot1_motion = Robot1Movement(self.world.robot1)
+        # self.robot2_motion = Robot2Movement(self.world.robot2)
+        # self.robot3_motion = Robot3Movement(self.world.robot3)
+        # self.robot4_motion = Robot4Movement(self.world.robot4)
+        
     def handle_gui(self):
         # Update GUI and process events
         if self.gui:
@@ -41,8 +48,10 @@ class Run:
                 robot_id = payload.get('robot_id')                                              
                 if robot_id == 1: 
                     active_robot = self.world.robot_test
+                    active_robot_calcs = self.robot_test_motion
                 elif robot_id == 2:  #TODO: Add in the respective robots acording to their id
-                    pass
+                    active_robot = None
+                    active_robot_calcs = None
                 elif robot_id == 3:
                     pass
                 elif robot_id == 4:
@@ -56,8 +65,6 @@ class Run:
                     q = payload.get('q')
                     active_robot.q = q
                 elif event_name == 'jog_cart' and payload is not None:
-                    # Get current end-effector pose via forward kinematics
-                    se3_current = active_robot.fkine(active_robot.q)
                     
                     # Extract jog deltas from payload
                     dx = payload.get('dx', 0)
@@ -70,11 +77,14 @@ class Run:
                     # Create a delta SE3 transform from jog values
                     delta_se3 = SE3(dx, dy, dz) * SE3.RPY([droll, dpitch, dyaw], order='xyz')
                     
+                    # Get current end-effector pose via forward kinematics
+                    se3_current = active_robot_calcs.forward_kinematics()
+                    
                     # Compute new target pose by applying delta to current pose
                     se3_target = se3_current * delta_se3
                     
                     # Use inverse kinematics to get joint angles for new pose
-                    q_new = MovementCalculation.inverse_kinematics(active_robot, se3_target, se3_current)
+                    q_new = active_robot_calcs.inverse_kinematics(se3_target)
                     
                     # Apply new joint angles to robot
                     active_robot.q = q_new

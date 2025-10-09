@@ -7,7 +7,7 @@ import roboticstoolbox as rtb
 
 class MovementCalculation:
     """Base class for robot movement calculations: kinematics, path planning, and safety checks."""
-    def __init__(self, robot_model):
+    def __init__(self, robot_model: rtb.DHRobot):
         self.robot = robot_model  # The RTB robot model (or custom model) this controller operates
         self.target_joint_positions = None  # For planned joint trajectory or target position
         self.current_task = None   # Description of current task (if any)
@@ -20,20 +20,28 @@ class MovementCalculation:
         # Use RTB forward kinematics:
         return self.robot.fkine(q)
     
-    def inverse_kinematics(self, active_robot, target_pose: SE3, q_seed):
+    def inverse_kinematics(self, target_pose: SE3, q_seed=None):
         """Solve inverse kinematics for the robot to reach the target_pose. Returns joint angles solution."""
         # TODO: Use RTB's IK solver or implement one.
         # e.g., sol = self.robot.ikine_LMS(target_pose)  (if using RTB's ikine methods)
         # return sol.q
-        self.robot.ikine_LM(
+        
+        # Seed: current joints if none provided
+        if q_seed is None:
+            q_seed = np.asarray(self.robot.q, dtype=float)
+        else:
+            q_seed = np.asarray(q_seed, dtype=float)
+
+        sol = self.robot.ikine_LM(
                 target_pose,
                 q0=q_seed,
                 ilimit=30, # Max number of itterations (Reduce for faster but may not get within tolarance)
                 tol=1e-6, # Once within tolarance it will stop itterating inverse kinimatics
                 mask=np.array([1, 1, 1, 1, 1, 1]),
-                joint_limits=active_robot.qlim
+                joint_limits=True # reject if joints violate self.robot.qlim
             )
-        return None
+        
+        return np.asarray(sol, dtype=float)
     
     def compute_jacobian(self, q=None):
         """Compute the robot Jacobian at joint configuration q (or current q)."""
