@@ -67,19 +67,19 @@ class World:
             Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
                         color=(0.1,0.1,0.1,1.0))
             self.env.add(Light_Fence_Post)
-
+            #DYALN
             Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.97, 5.5, 0), scale=[1,1,0.5])
             self.env.add(Pillar_1)
-
+            #AIDAN
             Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(9.72, 5.6, 0), scale=[1,1,0.5])
             self.env.add(Pillar_2)
-
+            #UR3
             Pillar_3 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(4.6, 4.05, 0))
             self.env.add(Pillar_3)
-
+            #AKAAL
             Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
