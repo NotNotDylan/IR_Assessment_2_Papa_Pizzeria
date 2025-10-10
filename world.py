@@ -4,6 +4,7 @@ import swift
 import roboticstoolbox as rtb
 from ir_support import UR3
 from ABB_IRB_2400.IRB_2400 import IRB2400
+from IRB_4600.ABB_IRB_4600 import IRB_4600
 from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
@@ -18,7 +19,7 @@ class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
-        self.robot_test = IRB2400()    # Robot I am using to temporaly test the GUI
+        self.robot_test = IRB_4600()    # Robot I am using to temporaly test the GUI
         self.robot1 = None         # Robot performing sauce application
         self.robot2 = None         # Robot performing topping placement
         self.robot3 = None         # Robot handling oven loading/unloading

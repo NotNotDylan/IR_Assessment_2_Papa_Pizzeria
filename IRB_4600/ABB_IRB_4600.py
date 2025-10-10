@@ -44,17 +44,17 @@ class IRB_4600(DHRobot3D):
         )
 
         # A convenient "inspection" configuration to align meshes
-        qtest = [0, -pi/2, +pi/2, 0, 0, 0]
+        qtest = [0, 0, 0, 0, 0, 0]
 
         # Aligning 3D meshes to the DH frames at qtest.        
         qtest_transforms = [
             spb.transl(0, 0, 0),                                     # link0: base casting
             spb.transl(0.0, 0.002917   , 0.1595),    # link1: shoulder
-            spb.transl(0.17195, -0.1225, 0.495)  @ spb.trotx(-pi/2),    # link2: upper arm
-            spb.transl(0.17301, -0.1492     , 1.59)  @ spb.trotx(pi/2),    # link3: forearm
-            spb.transl(0.5151, 0.0, 1.765)  @ spb.troty( -pi/2),    # wrist1
-            spb.transl(1.3515, 0     , 1.765)  @ spb.troty( -pi/2),    # wrist2
-            spb.transl(1.4565 , 0     , 1.765)  @ spb.troty( -pi/2),    # wrist3 (flange)
+            spb.transl(0.17195, -0.1225, 0.495)  @ spb.trotx(pi/2),    # link2: upper arm
+            spb.transl(0.17301, -0.1492     , 1.59)  @ spb.trotx(-pi/2),    # link3: forearm
+            spb.transl(0.5151, 0.0, 1.765)  @ spb.troty( pi/2),    # wrist1
+            spb.transl(1.3515, 0     , 1.765)  @ spb.trotx(-pi/2),    # wrist2
+            spb.transl(1.4565 , 0     , 1.765)  @ spb.troty( pi/2),    # wrist3 (flange)
         ]
 
         current_path = os.path.abspath(os.path.dirname(__file__))
@@ -77,10 +77,10 @@ class IRB_4600(DHRobot3D):
         """
         # --- Derived values from your CAD ---
         # axis   d (m)=displacment along z     a (m)=length between     alpha (rad)=rot around x     qlim (rad)
-        a      = [ 0.175, 0.900, 0.175,   0.0, 0.000, 0.000 ]
-        d      = [ 0.495,    0.0,   0.0, 0.960,   0.0, 0.135 ]
-        alpha  = [ -pi/2,    0.0, -pi/2, +pi/2, -pi/2,   0.0 ]  
-        offset = [     0,      -pi/2,     0,     0,     0,pi ]
+        a      = [ 0.175, 1.095, 0.175,   0.000, 0.000, 0.000 ]
+        d      = [ 0.495,    0.02,   0.149, 1.2305,   0.0, 0.085 ]
+        alpha  = [ -pi/2,    0.0, -pi/2, 0.0, +pi/2,   0.0 ]  
+        offset = [     0,      -pi/2,     0,     0,     pi, 0 ]
         
         
         # Axis ranges from ABB spec (convert degrees to radians)
@@ -107,6 +107,7 @@ class IRB_4600(DHRobot3D):
         env.launch(realtime=True)
 
         self.add_to_env(env)
+        env.set_camera_pose([2.5, -2.0, 1.5], [0, 0, 1.0])
 
         q_goal = [self.q[i] - pi/8 for i in range(self.n)]
         qtraj = rtb.jtraj(self.q, q_goal, 20).q
