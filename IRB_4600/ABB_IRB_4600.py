@@ -77,10 +77,10 @@ class IRB_4600(DHRobot3D):
         """
         # --- Derived values from your CAD ---
         # axis   d (m)=displacment along z     a (m)=length between     alpha (rad)=rot around x     qlim (rad)
-        a      = [ 0.175, 1.095, 0.175,   0.000, 0.000, 0.000 ]
-        d      = [ 0.495,    0.02,   0.149, 1.2305,   0.0, 0.085 ]
-        alpha  = [ -pi/2,    0.0, -pi/2, 0.0, +pi/2,   0.0 ]  
-        offset = [     0,      -pi/2,     0,     0,     pi, 0 ]
+        a      = [0.172,  1.095, 0.3421,   0.02,   0.51,  0.000 ]
+        d      = [0.3355, 0.02,  0.149,   0.8904, 0.02,  0.0]
+        alpha  = [-pi/2,  0.0,   -pi/2,   +pi/2,  +pi/2, 0.0 ]  
+        offset = [    0,  -pi/2,     0,   0,      0,     0 ]
         
         
         # Axis ranges from ABB spec (convert degrees to radians)

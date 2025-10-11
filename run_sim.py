@@ -7,11 +7,14 @@ from states import States
 import step_environment
 from world import World
 
+
 import time
 import threading
 import swift
 import roboticstoolbox as rtb
 from spatialmath import SE3
+from ir_support.robots.DHRobot3D import DHRobot3D
+
 # ... (other imports like numpy, logging, flask etc., as needed)
 
 class Run:
@@ -99,6 +102,7 @@ class Run:
             
             # Step the environment to update visuals
             self.world.env.step(0.05)
+            
             
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)
