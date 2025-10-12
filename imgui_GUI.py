@@ -206,14 +206,16 @@ class GUIImGui:
         if imgui.button("Reset", width=90, height=48):
             if self._estop_latched:
                 self._estop_latched = False
+                self.system_paused = True
                 self._events.append(('estop_reset', None))
         imgui.same_line()
         if imgui.button("Resume", width=90, height=48):
             # only emit resume if *not* latched
             if not self._estop_latched:
+                self.system_paused = False
                 self._events.append(('resume', None))
 
-        # --- Robot selection ---
+        # --- Robot selection ---   #TODO: Hide this section of the manual teach if the system is not paused
         imgui.separator()
         imgui.text("Manual Teach (one robot at a time)")
         if self._robots:
@@ -296,6 +298,19 @@ class GUIImGui:
         else:
             imgui.text_colored("No robots bound. Call bind_robots(...) first.", 1.0, 0.6, 0.4)
 
+        
+        # --- Get End Effector SE3 ---
+        imgui.separator()
+        imgui.text("Get End Effector SE3")
+        if imgui.button("Print SE3 to Terminal", width=200):
+            rid = self._active_robot
+            if rid is not None:
+                meta = self._robots[rid]
+                # Placeholder: Replace with your actual FK function to get SE3
+                q = self._q_shadow.get(rid) or list(meta['get_q']())
+                se3 = f"SE3 for q={q}: [Placeholder]"  # Replace with actual SE3 computation
+                self._events.append(('print_se3', {'robot_id': rid, 'q': q, 'se3': se3}))
+        
         # --- Safety / status ---
         imgui.separator()
         imgui.text("Safety & Status")

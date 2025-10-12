@@ -28,9 +28,9 @@ class MovementCalculation:
         
         # Seed: current joints if none provided
         if q_seed is None:
-            q_seed = np.asarray(self.robot.q, dtype=float)
-        else:
-            q_seed = np.asarray(q_seed, dtype=float)
+            q_seed = self.robot.q
+        # else:
+        #     q_seed = q_seed
 
         sol = self.robot.ikine_LM(
                 target_pose,
@@ -41,7 +41,7 @@ class MovementCalculation:
                 joint_limits=True # reject if joints violate self.robot.qlim
             )
         
-        return np.asarray(sol, dtype=float)
+        return sol.q
     
     def compute_jacobian(self, q=None):
         """Compute the robot Jacobian at joint configuration q (or current q)."""
