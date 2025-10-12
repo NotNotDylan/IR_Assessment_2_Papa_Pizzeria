@@ -29,10 +29,10 @@ class Run:
         
         # Creating only one instance of the robot movment and calcuation objects
         self.robot_test_motion = MovementCalculation(self.world.robot_test)
-        # self.robot1_motion = Robot1Movement(self.world.robot1)
-        # self.robot2_motion = Robot2Movement(self.world.robot2)
-        # self.robot3_motion = Robot3Movement(self.world.robot3)
-        # self.robot4_motion = Robot4Movement(self.world.robot4)
+        # self.robot1_motion = self.motions[0]
+        # self.robot2_motion = self.motions[1]
+        # self.robot3_motion = self.motions[2]
+        # self.robot4_motion = self.motions[3]
         
     def handle_gui(self):
         # Update GUI and process events

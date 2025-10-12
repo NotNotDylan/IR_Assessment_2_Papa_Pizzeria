@@ -19,7 +19,7 @@ class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
-        self.robot_test = IRB_4600()    # Robot I am using to temporaly test the GUI
+        self.robot_test = IRB2400()    # Robot I am using to temporaly test the GUI
         self.robot1 = None         # Robot performing sauce application
         self.robot2 = None         # Robot performing topping placement
         self.robot3 = None         # Robot handling oven loading/unloading
@@ -100,7 +100,7 @@ class World:
         
         # self.env.add(self.robot_test)
         self.robot_test.add_to_env(self.env)
-        self.robot_test.base = SE3(6.97,5.5,0.5)
+        # self.robot_test.base = SE3(6.97,5.5,0.5)
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
