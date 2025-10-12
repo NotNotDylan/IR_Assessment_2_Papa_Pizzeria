@@ -14,6 +14,10 @@ import spatialgeometry as geometry
 import os
 import spatialmath.base as spb
 from spatialmath import SE3
+import numpy as np
+import threading
+
+
 
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
@@ -29,6 +33,8 @@ class World:
         self.safety_barriers = []  # Any safety barrier objects (e.g., fences, light curtain representation)
         self.objects = []          # List to hold other objects (pizzas, toppings, etc. currently in scene)
         # (Other environment attributes can be added as needed)
+        self.last_update = time.time()
+        self.plates = []
     
     def launch(self, environment_objects: bool = False):
         """Start the simulator and set up the static scene (floor, walls, etc.)."""
@@ -84,10 +90,30 @@ class World:
             Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
+            
 
-            plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyer_Top.stl"), 
-                          pose = SE3(4.125 ,3.6 ,0.99).A @ trotz(pi/2))
-            self.env.add(plate1)
+            x = 4.05
+            y = 3.6
+            z = 0.99
+            c = 1
+
+            for i in range(50):
+
+                if c == 1:
+                    r, g, b = 0.25, 0.25, 0.25   # dark gray
+                    c = 2
+                else:
+                    r, g, b = 0.35, 0.35, 0.35   # light gray
+                    c = 1
+
+                plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyer_Top.stl"), 
+                          pose = SE3(x ,y ,z).A @ trotz(pi/2), color=(r,g,b,1.0),scale=[1, 0.4, 1])
+                x = x + 0.1
+                self.env.add(plate)
+                self.plates.append(plate)
+            
+
+            print(self.plates)
             # Floor
             # Safety
             # Decorations
@@ -142,20 +168,17 @@ class World:
         if obj in self.objects:
             self.objects.remove(obj)
 
-class ConveyorBelt:
-    """Represents a conveyor belt that moves objects from a start position to an end position."""
-    def __init__(self, start_pose: SE3, end_pose: SE3, speed: float):
-        self.start_pose = start_pose  # SE3 start location of conveyor
-        self.end_pose = end_pose      # SE3 end location of conveyor
-        self.speed = speed           # movement speed (units per second) along conveyor
-        self.active = True           # whether the conveyor is currently moving or stopped
-    
-    def move_object(self, obj: ManipulatableObject, dt: float) -> bool:
-        """Move the given object along the conveyor by distance = speed*dt.
-        Returns True if object has reached the end of conveyor."""
-        # TODO: Compute movement along conveyor direction.
-        # You might parameterize conveyor by a vector from start to end and move object accordingly.
-        # For simplicity, assume straight line from start_pose to end_pose.
-        # Update obj position by small step towards end.
-        # If end reached or exceeded, return True (meaning object should transfer to next stage or conveyor).
-        return False
+    def conveyorBelt_Movement(self):
+        if self.plates[0].color == (0.25,0.25,0.25,1.0):
+            for plate in self.plates[0::2]:
+                plate.color = (0.35,0.35,0.35,1.0)
+            for plate in self.plates[1::2]:
+                plate.color = (0.25,0.25,0.25,1.0)
+        else:
+            for plate in self.plates[0::2]:
+                plate.color = (0.25,0.25,0.25,1.0)
+            for plate in self.plates[1::2]:
+                plate.color = (0.35,0.35,0.35,1.0)
+        
+
+

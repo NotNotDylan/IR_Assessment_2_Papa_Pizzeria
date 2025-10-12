@@ -1,5 +1,3 @@
-
-
 import external_e_stop
 from imgui_GUI import GUIImGui
 from logger import Logger
@@ -45,7 +43,8 @@ def main():
     world.launch(environment_objects=True)  # Launch Swift simulator and load environment objects
     # Initialize robots and other objects in the world
     # (Assume World class handles adding robots, conveyors, etc.)
-    world.setup_robots_and_objects()
+    world.setup_robots_and_objects() 
+    
     
     # Initialize GUI and safety systems
     gui = GUIImGui()
