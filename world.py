@@ -19,10 +19,10 @@ class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
-        self.robot_test = IRB_4600()    # Robot I am using to temporaly test the GUI
-        self.robot1 = None         # Robot performing sauce application
-        self.robot2 = None         # Robot performing topping placement
-        self.robot3 = None         # Robot handling oven loading/unloading
+        self.robot_test = None   # Robot I am using to temporaly test the GUI
+        self.robot1 = IRB_4600()         # Robot performing sauce application
+        self.robot2 = IRB2400()        # Robot performing topping placement
+        self.robot3 = UR3()        # Robot handling oven loading/unloading
         self.robot4 = None         # Robot packaging and loading pizza on bike
         self.conveyors = []        # List of ConveyorBelt objects in the system
         self.motorbike = None      # The motorbike object (for delivery)
@@ -57,9 +57,9 @@ class World:
                        color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_One)
 
-            Conveyer_Two = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Second_Conveyer2.0.1.stl"),
-                        color=(0.5,0.5,0.5,1.0))
-            self.env.add(Conveyer_Two)
+            Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
+                        color=(0.588, 0.294, 0.0))
+            self.env.add(Table)
 
             Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
                         color=(0.886,0.447,0.357,1.0))
@@ -70,7 +70,7 @@ class World:
             self.env.add(Light_Fence_Post)
             #DYALN
             Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
-                        color=(0.5,0.5,0.5,1.0), pose=SE3(6.97, 5.5, 0), scale=[1,1,0.5])
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(5.8486, 6.4944, 0), scale=[1,1,0.5])
             self.env.add(Pillar_1)
             #AIDAN
             Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
@@ -84,6 +84,10 @@ class World:
             Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
+
+            plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyer_Top.stl"), 
+                          pose = SE3(4.125 ,3.6 ,0.99).A @ trotz(pi/2))
+            self.env.add(plate1)
             # Floor
             # Safety
             # Decorations
@@ -99,8 +103,14 @@ class World:
         # Add robots to the Swift environment: self.env.add(self.robot1)
         
         # self.env.add(self.robot_test)
-        self.robot_test.add_to_env(self.env)
-        self.robot_test.base = SE3(6.97,5.5,0.5)
+        self.robot2.add_to_env(self.env)
+        self.robot2.base = SE3(5.8486, 6.4944, 0.5)
+
+        self.robot1.add_to_env(self.env)
+        self.robot1.base = SE3(9.72,5.6,0.5)
+
+        self.robot3.add_to_env(self.env)
+        self.robot3.base = SE3(4.6,4.05,1.0)
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)

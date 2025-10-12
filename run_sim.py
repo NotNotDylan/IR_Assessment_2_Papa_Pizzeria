@@ -31,10 +31,10 @@ class Run:
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop)
         
         # Creating only one instance of the robot movment and calcuation objects
-        self.robot_test_motion = MovementCalculation(self.world.robot_test)
-        # self.robot1_motion = Robot1Movement(self.world.robot1)
-        # self.robot2_motion = Robot2Movement(self.world.robot2)
-        # self.robot3_motion = Robot3Movement(self.world.robot3)
+        #self.robot_test_motion = MovementCalculation(self.world.robot_test)
+        self.robot1_motion = Robot1Movement(self.world.robot1)
+        self.robot2_motion = Robot2Movement(self.world.robot2)
+        self.robot3_motion = Robot3Movement(self.world.robot3)
         # self.robot4_motion = Robot4Movement(self.world.robot4)
         
     def handle_gui(self):
@@ -50,13 +50,14 @@ class Run:
                 # Coppy active robot object so it can be modified later on
                 robot_id = payload.get('robot_id')                                              
                 if robot_id == 1: 
-                    active_robot = self.world.robot_test
-                    active_robot_calcs = self.robot_test_motion
+                    active_robot = self.world.robot1
+                    active_robot_calcs = self.robot1_motion
                 elif robot_id == 2:  #TODO: Add in the respective robots acording to their id
-                    active_robot = None
-                    active_robot_calcs = None
+                    active_robot = self.world.robot2
+                    active_robot_calcs = self.robot2_motion
                 elif robot_id == 3:
-                    pass
+                    active_robot = self.world.robot3
+                    active_robot_calcs = self.robot3_motion
                 elif robot_id == 4:
                     pass
                 
