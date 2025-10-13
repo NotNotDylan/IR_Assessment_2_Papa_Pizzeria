@@ -15,6 +15,7 @@ import roboticstoolbox as rtb
 from spatialmath import SE3
 from ir_support.robots.DHRobot3D import DHRobot3D
 
+
 # ... (other imports like numpy, logging, flask etc., as needed)
 
 class Run:
@@ -28,7 +29,9 @@ class Run:
         self.logger = logger
         self.motions = motions  # list of robot motion controller objects
         self.running = True
+        self.running = True
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop)
+          # Initialize simulation time
         
         # Creating only one instance of the robot movment and calcuation objects
         #self.robot_test_motion = MovementCalculation(self.world.robot_test)
@@ -36,7 +39,6 @@ class Run:
         self.robot2_motion = Robot2Movement(self.world.robot2)
         self.robot3_motion = Robot3Movement(self.world.robot3)
         # self.robot4_motion = Robot4Movement(self.world.robot4)
-        
     def handle_gui(self):
         # Update GUI and process events
         if self.gui:
@@ -96,6 +98,7 @@ class Run:
     def run_loop(self):
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
+        
         while self.running:
             
             # Update GUI and process events  
@@ -107,7 +110,9 @@ class Run:
             
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)
-            
+            t = self.world.env.sim_time
+            print(t)
+
             ''' Structure I can follow:
             # 1. Check for emergency stop signals (hardware or GUI e-stop)
             if self.estop.check_stop() or self.gui.estop_pressed:

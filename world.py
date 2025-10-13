@@ -168,7 +168,7 @@ class World:
         if obj in self.objects:
             self.objects.remove(obj)
 
-    def conveyorBelt_Movement(self):
+    def conveyorBelt_Movement(self): 
         if self.plates[0].color == (0.25,0.25,0.25,1.0):
             for plate in self.plates[0::2]:
                 plate.color = (0.35,0.35,0.35,1.0)
