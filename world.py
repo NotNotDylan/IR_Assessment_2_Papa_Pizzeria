@@ -95,22 +95,12 @@ class World:
             x = 4.05
             y = 3.6
             z = 0.99
-            c = 1
 
-            for i in range(50):
 
-                if c == 1:
-                    r, g, b = 0.25, 0.25, 0.25   # dark gray
-                    c = 2
-                else:
-                    r, g, b = 0.35, 0.35, 0.35   # light gray
-                    c = 1
+            plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyer_Top.stl"), 
+                          pose = SE3(x ,y ,z).A @ trotz(pi/2), color=(0.25,0.25,0.25,1.0),scale=[1, 0.4, 1])
+            self.env.add(plate)
 
-                plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyer_Top.stl"), 
-                          pose = SE3(x ,y ,z).A @ trotz(pi/2), color=(r,g,b,1.0),scale=[1, 0.4, 1])
-                x = x + 0.1
-                self.env.add(plate)
-                self.plates.append(plate)
             
 
             print(self.plates)
@@ -168,17 +158,8 @@ class World:
         if obj in self.objects:
             self.objects.remove(obj)
 
-    def conveyorBelt_Movement(self): 
-        if self.plates[0].color == (0.25,0.25,0.25,1.0):
-            for plate in self.plates[0::2]:
-                plate.color = (0.35,0.35,0.35,1.0)
-            for plate in self.plates[1::2]:
-                plate.color = (0.25,0.25,0.25,1.0)
-        else:
-            for plate in self.plates[0::2]:
-                plate.color = (0.25,0.25,0.25,1.0)
-            for plate in self.plates[1::2]:
-                plate.color = (0.35,0.35,0.35,1.0)
+    
+
         
 
 

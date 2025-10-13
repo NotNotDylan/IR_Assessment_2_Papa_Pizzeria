@@ -30,8 +30,7 @@ class Run:
         self.motions = motions  # list of robot motion controller objects
         self.running = True
         self.running = True
-        self.paused = False  # indicates if simulation is paused (e.g., after e-stop)
-          # Initialize simulation time
+        self.paused = False  # indicates if simulation is paused (e.g., after e-stop) # Initialize simulation time
         
         # Creating only one instance of the robot movment and calcuation objects
         #self.robot_test_motion = MovementCalculation(self.world.robot_test)
@@ -96,9 +95,10 @@ class Run:
                     active_robot.q = q_new
     
     def run_loop(self):
+        self.loop = 1
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
-        
+        last_time = 2.0
         while self.running:
             
             # Update GUI and process events  
@@ -109,9 +109,13 @@ class Run:
             
             
             # Small sleep to prevent excessive CPU usage
-            time.sleep(0.01)
-            t = self.world.env.sim_time
-            print(t)
+            
+            t = float(self.world.env.sim_time)
+
+            
+            
+             
+
 
             ''' Structure I can follow:
             # 1. Check for emergency stop signals (hardware or GUI e-stop)
