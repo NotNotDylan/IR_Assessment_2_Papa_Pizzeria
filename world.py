@@ -35,6 +35,10 @@ class World:
         # (Other environment attributes can be added as needed)
         self.last_update = time.time()
         self.plates = []
+        self.x = 4.05
+        self.y = 3.6
+        self.z = 0.99
+
     
     def launch(self, environment_objects: bool = False):
         """Start the simulator and set up the static scene (floor, walls, etc.)."""
@@ -59,7 +63,7 @@ class World:
                         color=(1.0,1.0,0.0,1.0))
             self.env.add(floor)
 
-            Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.2.stl"),
+            Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.3.stl"),
                        color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_One)
 
@@ -91,15 +95,15 @@ class World:
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
             
+            self.plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+                          pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
+            self.env.add(self.plate)
 
-            x = 4.05
-            y = 3.6
-            z = 0.99
+            self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+                          pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
+            self.env.add(self.plate2)
 
 
-            plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyer_Top.stl"), 
-                          pose = SE3(x ,y ,z).A @ trotz(pi/2), color=(0.25,0.25,0.25,1.0),scale=[1, 0.4, 1])
-            self.env.add(plate)
 
             
 
@@ -157,6 +161,32 @@ class World:
                 pass  # If the environment doesn't support remove, we may just hide or ignore
         if obj in self.objects:
             self.objects.remove(obj)
+
+    # def conveyorBelt_Movement(self):
+    #     self.env.swift_objects.remove(self.plate)
+    # def safe_remove_from_swift(self, env, obj):
+    #     if not hasattr(env, "swift_objects"):
+    #         return
+    #     swift_objects = getattr(env, "swift_objects")
+
+    #     # Iterate through the list in steps of 2 because it’s [obj, pose, obj, pose, ...]
+    #     for i in range(0, len(swift_objects) - 1, 2):
+    #         if swift_objects[i] is obj:
+    #             # Remove both the object and its associated pose
+    #             del swift_objects[i:i+2]
+    #             print(f"Removed {obj} safely from Swift environment")
+    #             return
+    #     print(f"Object {obj} not found in Swift environment")
+
+
+    def conveyorBelt_Movement_Foward(self, plate, direction):    
+        plate.T = plate.T @ SE3((direction)*0.1, 0, 0).A
+
+    def conveyorBelt_Movement_Backwards(self, plate, direction):    
+        plate.T = plate.T @ SE3((direction)*0.1, 0, 0).A
+        
+
+
 
     
 

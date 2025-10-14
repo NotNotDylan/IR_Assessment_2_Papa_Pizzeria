@@ -31,7 +31,8 @@ class Run:
         self.running = True
         self.running = True
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop) # Initialize simulation time
-        
+        self.loop = 1
+        self.loop2 = 1
         # Creating only one instance of the robot movment and calcuation objects
         #self.robot_test_motion = MovementCalculation(self.world.robot_test)
         self.robot1_motion = Robot1Movement(self.world.robot1)
@@ -95,22 +96,45 @@ class Run:
                     active_robot.q = q_new
     
     def run_loop(self):
-        self.loop = 1
+
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
-        last_time = 2.0
+        last_time = 0.25
+        last_time2 = 0.25
         while self.running:
             
             # Update GUI and process events  
             self.handle_gui()
             
             # Step the environment to update visuals
-            self.world.env.step(0.05)
+            
             
             
             # Small sleep to prevent excessive CPU usage
             
             t = float(self.world.env.sim_time)
+            print(t)
+            if t - last_time >= 0.25:
+                print("Moved")
+                if self.loop == 1:
+                    self.world.conveyorBelt_Movement_Foward(plate=self.world.plate, direction = 1)
+                    self.loop = 2
+                elif self.loop == 2:
+                    self.world.conveyorBelt_Movement_Backwards(plate=self.world.plate, direction = -1)
+                    self.loop = 1
+                last_time = t
+
+            if t - last_time2 >= 0.25:
+                print("Moved")
+                if self.loop2 == 1:
+                    self.world.conveyorBelt_Movement_Foward(plate=self.world.plate2, direction = -1)
+                    self.loop2 = 2
+                elif self.loop2 == 2:
+                    self.world.conveyorBelt_Movement_Backwards(plate=self.world.plate2, direction = 1)
+                    self.loop2 = 1
+                last_time2 = t
+
+            self.world.env.step(0.05)
 
             
             
