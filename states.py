@@ -8,12 +8,16 @@ class SystemState(Enum):
     IDLE = auto()       # Does nothing
 
 class State:
-    """Tracks the state of any system."""
+    """
+    Tracks the state of any system or object.
+    """
     _instances = []  # class attribute to hold all instances
     
     def __init__(self, state: SystemState | None = None):
         self.state = state
         self.next_state = state
+        
+        self.next_state_priority = 0
         
         if self.state == None:
             self.state = SystemState.IDLE
@@ -22,10 +26,20 @@ class State:
         
     # Set states
     def set_state(self, new_state: SystemState):
+        """Overrids and sets current state"""
         self.state = new_state
     
-    def set_next_state(self, new_state: SystemState):
+    def set_next_state(self, new_state: SystemState, priority: int = 0):
+        """ Sets next state after update, priority has to be > and != than previous set priority to override """
+        
+        if priority > self.next_state_priority:
+            self.next_state = new_state
+            self.next_state_priority = priority
+            
+    def lock_next_state(self, new_state: SystemState):
+        """If called next state will be what's called here"""
         self.next_state = new_state
+        self.next_state_priority = 9999 # Set higher than it is reasonably to be set anywhere else in code
 
     # Checking current state
     def is_running(self) -> bool:
@@ -42,8 +56,9 @@ class State:
 
     # Updates states at next cycle
     def update(self):
-        """Set state = next_state, next_state remains unchanged"""
+        """Set state = next_state, next_state remains unchanged but priority is reset to 0"""
         self.state = self.next_state
+        self.next_state_priority = 0
 
     @classmethod # only need to call once and will update all instances of this class
     def step_all(cls):
