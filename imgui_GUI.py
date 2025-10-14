@@ -39,7 +39,7 @@ class GUIImGui:
     Events emitted (tuples):  (event_name, payload_dict_or_None)
       - ('estop', {'source': 'gui'})
       - ('estop_reset', None)                # user released e-stop latch
-      - ('resume', None)                     # explicit user resume
+      - ('Start', None)                      # explicit user Start
       - ('stop_program', None)               # quit app
       - ('select_robot', {'robot_id': int})
       - ('set_q', {'robot_id': int, 'q': list[float]})
@@ -185,7 +185,7 @@ class GUIImGui:
         if self.light_curtain_broken:
             imgui.text_colored("LIGHT CURTAIN TRIPPED", 1.0, 0.3, 0.3)
         if self._estop_latched:
-            imgui.text_colored("E-STOP LATCHED — requires Reset then Resume", 1.0, 0.3, 0.3)
+            imgui.text_colored("E-STOP LATCHED — requires Reset then Start", 1.0, 0.3, 0.3)
         elif self.system_paused:
             imgui.text_colored("PAUSED", 1.0, 0.8, 0.0)
 
@@ -209,107 +209,116 @@ class GUIImGui:
                 self.system_paused = True
                 self._events.append(('estop_reset', None))
         imgui.same_line()
-        if imgui.button("Resume", width=90, height=48):
+        col_push_start = imgui.push_style_color(imgui.COLOR_BUTTON, 0.2, 0.8, 0.2, 1.0)
+        col_push_start_h = imgui.push_style_color(imgui.COLOR_BUTTON_HOVERED, 0.3, 0.9, 0.3, 1.0)
+        col_push_start_a = imgui.push_style_color(imgui.COLOR_BUTTON_ACTIVE, 0.1, 0.7, 0.1, 1.0)
+        if imgui.button("Start", width=90, height=48):
             # only emit resume if *not* latched
             if not self._estop_latched:
                 self.system_paused = False
-                self._events.append(('resume', None))
+                self._events.append(('Start', None))
+        imgui.pop_style_color(3)
+            # # only emit resume if *not* latched
+            # if not self._estop_latched:
+            #     self.system_paused = False
+            #     self._events.append(('Start', None))
 
         # --- Robot selection ---   #TODO: Hide this section of the manual teach if the system is not paused
-        imgui.separator()
-        imgui.text("Manual Teach (one robot at a time)")
-        if self._robots:
-            current = self._active_robot or list(self._robots.keys())[0]
-            labels = [f"{rid}: {meta['name']}" for rid, meta in self._robots.items()]
-            keys = list(self._robots.keys())
-            sel_idx = keys.index(current)
-            changed, sel_idx = imgui.combo("Active Robot", sel_idx, labels)
-            if changed:
-                self._active_robot = keys[sel_idx]
-                self._events.append(('select_robot', {'robot_id': self._active_robot}))
-                # refresh shadow from robot
-                try:
-                    self._q_shadow[self._active_robot] = list(self._robots[self._active_robot]['get_q']())
-                except Exception:
-                    pass
-
-            # Joint sliders for selected robot
-            rid = self._active_robot
-            if rid is not None:
-                meta = self._robots[rid]
-                q = self._q_shadow.get(rid) or list(meta['get_q']())
-                qlim = meta.get('qlim', [( -math.pi, math.pi)] * len(q))
-                imgui.text(f"Joint Jog (radians). DOF={len(q)}")
-                imgui.push_item_width(360)
-                any_changed = False
-                for i, val in enumerate(q):
-                    jmin, jmax = qlim[i]
-                    changed, new_val = imgui.slider_float(f"q{i+1}", val, jmin, jmax, format="%.3f")
-                    if changed:
-                        q[i] = new_val
-                        any_changed = True
-                imgui.pop_item_width()
-                self._q_shadow[rid] = q
-
-                # if imgui.button("Apply Joints", width=160):
-                #     # Emit set_q — your runner can either apply directly or plan a trajectory
-                #     self._events.append(('set_q', {'robot_id': rid, 'q': list(q)}))
-                
-                self._events.append(('set_q', {'robot_id': rid, 'q': list(q)})) # Live updating
-
-                # imgui.same_line()
-                if imgui.button("Refresh", width=120): # TODO: Fix (not working) this need to set robot back to initial state (all zeros would be easiest)
+        if self.system_paused:
+            imgui.separator()
+            imgui.text("Manual Teach (one robot at a time)")
+            if self._robots:
+                current = self._active_robot or list(self._robots.keys())[0]
+                labels = [f"{rid}: {meta['name']}" for rid, meta in self._robots.items()]
+                keys = list(self._robots.keys())
+                sel_idx = keys.index(current)
+                changed, sel_idx = imgui.combo("Active Robot", sel_idx, labels)
+                if changed:
+                    self._active_robot = keys[sel_idx]
+                    self._events.append(('select_robot', {'robot_id': self._active_robot}))
+                    # refresh shadow from robot
                     try:
-                        self._q_shadow[rid] = list(meta['get_q']())
+                        self._q_shadow[self._active_robot] = list(self._robots[self._active_robot]['get_q']())
                     except Exception:
                         pass
 
-            # Cartesian nudges for active robot
-            imgui.separator()
-            imgui.text("Cartesian Nudge (EE frame / world frame as you implement)")
-            changed1, self._nudge_lin = imgui.input_float("Δpos (m)", self._nudge_lin, step=0.001, step_fast=0.01)
-            changed2, self._nudge_ang = imgui.input_float("Δrot (rad)", self._nudge_ang, step=math.radians(1), step_fast=math.radians(5))
-            imgui.text("Translate")
-            if imgui.button("+X"): self._enqueue_jog(dx=+self._nudge_lin)
-            imgui.same_line()
-            if imgui.button("-X"): self._enqueue_jog(dx=-self._nudge_lin)
-            imgui.same_line()
-            if imgui.button("+Y"): self._enqueue_jog(dy=+self._nudge_lin)
-            imgui.same_line()
-            if imgui.button("-Y"): self._enqueue_jog(dy=-self._nudge_lin)
-            imgui.same_line()
-            if imgui.button("+Z"): self._enqueue_jog(dz=+self._nudge_lin)
-            imgui.same_line()
-            if imgui.button("-Z"): self._enqueue_jog(dz=-self._nudge_lin)
+                # Joint sliders for selected robot
+                rid = self._active_robot
+                if rid is not None:
+                    meta = self._robots[rid]
+                    q = self._q_shadow.get(rid) or list(meta['get_q']())
+                    qlim = meta.get('qlim', [( -math.pi, math.pi)] * len(q))
+                    imgui.text(f"Joint Jog (radians). DOF={len(q)}")
+                    imgui.push_item_width(360)
+                    any_changed = False
+                    for i, val in enumerate(q):
+                        jmin, jmax = qlim[i]
+                        changed, new_val = imgui.slider_float(f"q{i+1}", val, jmin, jmax, format="%.3f")
+                        if changed:
+                            q[i] = new_val
+                            any_changed = True
+                    imgui.pop_item_width()
+                    self._q_shadow[rid] = q
 
-            imgui.text("Rotate")
-            if imgui.button("+Roll"):  self._enqueue_jog(droll=+self._nudge_ang)
-            imgui.same_line()
-            if imgui.button("-Roll"):  self._enqueue_jog(droll=-self._nudge_ang)
-            imgui.same_line()
-            if imgui.button("+Pitch"): self._enqueue_jog(dpitch=+self._nudge_ang)
-            imgui.same_line()
-            if imgui.button("-Pitch"): self._enqueue_jog(dpitch=-self._nudge_ang)
-            imgui.same_line()
-            if imgui.button("+Yaw"):   self._enqueue_jog(dyaw=+self._nudge_ang)
-            imgui.same_line()
-            if imgui.button("-Yaw"):   self._enqueue_jog(dyaw=-self._nudge_ang)
+                    # if imgui.button("Apply Joints", width=160):
+                    #     # Emit set_q — your runner can either apply directly or plan a trajectory
+                    #     self._events.append(('set_q', {'robot_id': rid, 'q': list(q)}))
+                    
+                    self._events.append(('set_q', {'robot_id': rid, 'q': list(q)})) # Live updating
 
-        else:
-            imgui.text_colored("No robots bound. Call bind_robots(...) first.", 1.0, 0.6, 0.4)
+                    # imgui.same_line()
+                    if imgui.button("Refresh", width=120): # TODO: Fix (not working) this need to set robot back to initial state (all zeros would be easiest)
+                        try:
+                            self._q_shadow[rid] = list(meta['get_q']())
+                        except Exception:
+                            pass
+
+                # Cartesian nudges for active robot
+                imgui.separator()
+                imgui.text("Cartesian Nudge (EE frame / world frame as you implement)")
+                changed1, self._nudge_lin = imgui.input_float("Δpos (m)", self._nudge_lin, step=0.001, step_fast=0.01)
+                changed2, self._nudge_ang = imgui.input_float("Δrot (rad)", self._nudge_ang, step=math.radians(1), step_fast=math.radians(5))
+                imgui.text("Translate")
+                if imgui.button("+X"): self._enqueue_jog(dx=+self._nudge_lin)
+                imgui.same_line()
+                if imgui.button("-X"): self._enqueue_jog(dx=-self._nudge_lin)
+                imgui.same_line()
+                if imgui.button("+Y"): self._enqueue_jog(dy=+self._nudge_lin)
+                imgui.same_line()
+                if imgui.button("-Y"): self._enqueue_jog(dy=-self._nudge_lin)
+                imgui.same_line()
+                if imgui.button("+Z"): self._enqueue_jog(dz=+self._nudge_lin)
+                imgui.same_line()
+                if imgui.button("-Z"): self._enqueue_jog(dz=-self._nudge_lin)
+
+                imgui.text("Rotate")
+                if imgui.button("+Roll"):  self._enqueue_jog(droll=+self._nudge_ang)
+                imgui.same_line()
+                if imgui.button("-Roll"):  self._enqueue_jog(droll=-self._nudge_ang)
+                imgui.same_line()
+                if imgui.button("+Pitch"): self._enqueue_jog(dpitch=+self._nudge_ang)
+                imgui.same_line()
+                if imgui.button("-Pitch"): self._enqueue_jog(dpitch=-self._nudge_ang)
+                imgui.same_line()
+                if imgui.button("+Yaw"):   self._enqueue_jog(dyaw=+self._nudge_ang)
+                imgui.same_line()
+                if imgui.button("-Yaw"):   self._enqueue_jog(dyaw=-self._nudge_ang)
+
+            else:
+                imgui.text_colored("No robots bound. Call bind_robots(...) first.", 1.0, 0.6, 0.4)
 
         
-        # --- Get End Effector SE3 ---
-        imgui.separator()
-        imgui.text("Get End Effector SE3")
-        if imgui.button("Print SE3 to Terminal", width=200):
-            rid = self._active_robot
-            if rid is not None:
-                meta = self._robots[rid]
-                # Placeholder: Replace with your actual FK function to get SE3
-                q = self._q_shadow.get(rid) or list(meta['get_q']())
-                se3 = f"SE3 for q={q}: [Placeholder]"  # Replace with actual SE3 computation
-                self._events.append(('print_se3', {'robot_id': rid, 'q': q, 'se3': se3}))
+            # --- Get End Effector SE3 ---
+            imgui.separator()
+            imgui.text("Get End Effector SE3")
+            if imgui.button("Print SE3 to Terminal", width=200):
+                rid = self._active_robot
+                if rid is not None:
+                    meta = self._robots[rid]
+                    # Placeholder: Replace with your actual FK function to get SE3
+                    q = self._q_shadow.get(rid) or list(meta['get_q']())
+                    se3 = f"SE3 for q={q}: [Placeholder]"  # Replace with actual SE3 computation
+                    self._events.append(('print_se3', {'robot_id': rid, 'q': q, 'se3': se3}))
         
         # --- Safety / status ---
         imgui.separator()
