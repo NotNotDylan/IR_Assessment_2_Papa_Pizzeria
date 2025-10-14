@@ -68,7 +68,7 @@ class GUIImGui:
 
         # External state inputs (provide from your sim each frame if desired)
         self.light_curtain_broken: bool = False
-        self.system_paused: bool = False
+        self.system_paused: bool = True
 
         # E-stop latch
         self._estop_latched: bool = False

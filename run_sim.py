@@ -43,6 +43,8 @@ class Run:
         qtraj = self.test_inverse_kinamatics()
         
         while self.running:
+            # For event managment
+            time_for_loop = float(self.world.env.sim_time)
             
             # Update GUI and process events  
             self.handle_gui()
