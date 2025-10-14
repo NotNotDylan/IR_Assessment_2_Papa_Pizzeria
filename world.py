@@ -47,7 +47,12 @@ class World:
         self.x_pizza = 3.5
         self.y_pizza = 3.6
         self.z_pizza = 1.015
-        
+        self.last_pizza_time = float(self.env.sim_time)
+        self.pos1 = SE3(4.6, 3.6, 1.015)
+        self.pos2 = SE3(6.5, 3.6, 1.015)
+        self.pos3 = SE3(8.7, 3.6, 1.015)
+        self.pos = 1
+        self.sauce_placed = False
         
 
     
@@ -114,9 +119,12 @@ class World:
                           pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
             self.env.add(self.plate2)
 
-            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza.stl"), 
+            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
                           pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
             self.env.add(self.pizza)
+
+            self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
+                              pose = SE3(0,0,0), color=(0.698, 0.133, 0.133))
 
 
 
@@ -209,12 +217,62 @@ class World:
 
             self.last_time = self.t
 
-    def pizza_movement(self, x1, y1, z1, period):     
-        if (self.pizza.T) != (SE3(x1, y1, z1)):
+    def pizza_movement(self, pos, period):  
+        self.t = float(self.env.sim_time) 
+        if not np.allclose((self.pizza.T), (SE3(pos).A)): 
+            print(self.pizza.T) 
+            #if (self.pizza.T) != (SE3(x1, y1, z1).A):
             if self.t - self.last_time_pizza >= period:
                 self.pizza.T = self.pizza.T @ SE3(self.displacement, 0, 0).A
+                self.sauce_movement()
                 self.last_time_pizza = self.t
             self.conveyorBelt_Movement(plate1=self.plate,plate2=self.plate2,direction=1,period=0.25)
+            
+    
+    def pizza_timing(self, pause_1, pause_2):
+        self.t = float(self.env.sim_time)
+        match self.pos:
+            case 1:
+                self.t = float(self.env.sim_time)
+                self.last_pizza_time = float(self.env.sim_time) 
+                self.pizza_movement(pos=self.pos1,period=0.25)
+                if np.allclose((self.pizza.T), (SE3(self.pos1).A)):
+                    self.pos = 2
+
+            case 2:
+                self.t = float(self.env.sim_time)
+                if self.t - self.last_pizza_time >= pause_1:
+                    self.pizza_movement(pos=self.pos2,period=0.25)
+                if np.allclose((self.pizza.T), (SE3(self.pos2).A)):
+                    self.last_pizza_time = float(self.env.sim_time)
+                    self.pos = 3
+                    
+            case 3:
+                self.t = float(self.env.sim_time)
+                if self.t - self.last_pizza_time >= pause_2:
+                    self.pizza_movement(pos=self.pos3,period=0.25)
+
+    def sauce_placement(self):
+        if np.allclose((self.pizza.T), (SE3(self.pos1).A)):
+            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A
+            self.env.add(self.sauce)
+            self.sauce_placed = True
+
+    def sauce_movement(self):
+        if self.sauce_placed == True:
+            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A
+        
+            
+
+            
+
+
+
+                
+                
+            
+
+
 
 
 
