@@ -99,8 +99,6 @@ class Run:
 
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
-        last_time = 0.25
-        last_time2 = 0.25
         while self.running:
             
             # Update GUI and process events  
@@ -112,27 +110,7 @@ class Run:
             
             # Small sleep to prevent excessive CPU usage
             
-            t = float(self.world.env.sim_time)
-            print(t)
-            if t - last_time >= 0.25:
-                print("Moved")
-                if self.loop == 1:
-                    self.world.conveyorBelt_Movement_Foward(plate=self.world.plate, direction = 1)
-                    self.loop = 2
-                elif self.loop == 2:
-                    self.world.conveyorBelt_Movement_Backwards(plate=self.world.plate, direction = -1)
-                    self.loop = 1
-                last_time = t
-
-            if t - last_time2 >= 0.25:
-                print("Moved")
-                if self.loop2 == 1:
-                    self.world.conveyorBelt_Movement_Foward(plate=self.world.plate2, direction = -1)
-                    self.loop2 = 2
-                elif self.loop2 == 2:
-                    self.world.conveyorBelt_Movement_Backwards(plate=self.world.plate2, direction = 1)
-                    self.loop2 = 1
-                last_time2 = t
+            self.world.pizza_movement(x1=4.6,y1=3.6,z1=1.015,period=0.25)
 
             self.world.env.step(0.05)
 

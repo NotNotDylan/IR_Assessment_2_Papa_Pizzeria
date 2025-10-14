@@ -38,6 +38,17 @@ class World:
         self.x = 4.05
         self.y = 3.6
         self.z = 0.99
+        self.loop = 1
+        self.loop2 = 1
+        self.first_period = 0.25
+        self.last_time = 0.25
+        self.displacement = 0.1
+        self.last_time_pizza = 0.25
+        self.x_pizza = 3.5
+        self.y_pizza = 3.6
+        self.z_pizza = 1.015
+        
+        
 
     
     def launch(self, environment_objects: bool = False):
@@ -102,6 +113,10 @@ class World:
             self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
             self.env.add(self.plate2)
+
+            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza.stl"), 
+                          pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
+            self.env.add(self.pizza)
 
 
 
@@ -179,11 +194,32 @@ class World:
     #     print(f"Object {obj} not found in Swift environment")
 
 
-    def conveyorBelt_Movement_Foward(self, plate, direction):    
-        plate.T = plate.T @ SE3((direction)*0.1, 0, 0).A
+    def conveyorBelt_Movement(self, plate1, plate2, direction, period): 
+        self.t = float(self.env.sim_time)
+        if self.t - self.last_time >= period:
+            if self.loop == 1: 
+                plate1.T = plate1.T @ SE3((direction)*self.displacement, 0, 0).A
+                plate2.T = plate2.T @ SE3((direction)*-(self.displacement), 0, 0).A
+                self.loop = 2
 
-    def conveyorBelt_Movement_Backwards(self, plate, direction):    
-        plate.T = plate.T @ SE3((direction)*0.1, 0, 0).A
+            elif self.loop == 2:
+                plate1.T = plate1.T @ SE3((direction)*-(self.displacement), 0, 0).A
+                plate2.T = plate2.T @ SE3((direction)*self.displacement, 0, 0).A
+                self.loop = 1   
+
+            self.last_time = self.t
+
+    def pizza_movement(self, x1, y1, z1, period):     
+        if (self.pizza.T) != (SE3(x1, y1, z1)):
+            if self.t - self.last_time_pizza >= period:
+                self.pizza.T = self.pizza.T @ SE3(self.displacement, 0, 0).A
+                self.last_time_pizza = self.t
+            self.conveyorBelt_Movement(plate1=self.plate,plate2=self.plate2,direction=1,period=0.25)
+
+
+
+        
+
         
 
 
