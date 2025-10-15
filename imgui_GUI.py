@@ -223,7 +223,7 @@ class GUIImGui:
             #     self.system_paused = False
             #     self._events.append(('Start', None))
 
-        # --- Robot selection ---   #TODO: Hide this section of the manual teach if the system is not paused
+        # --- Robot selection ---
         if self.system_paused:
             imgui.separator()
             imgui.text("Manual Teach (one robot at a time)")
@@ -246,7 +246,12 @@ class GUIImGui:
                 rid = self._active_robot
                 if rid is not None:
                     meta = self._robots[rid]
-                    q = self._q_shadow.get(rid) or list(meta['get_q']())
+                    # Always fetch the latest joint angles from the robot when showing sliders
+                    try:
+                        q = list(meta['get_q']())
+                        self._q_shadow[rid] = q
+                    except Exception:
+                        q = self._q_shadow.get(rid) or [0.0] * int(meta.get('dof', 6))
                     qlim = meta.get('qlim', [( -math.pi, math.pi)] * len(q))
                     imgui.text(f"Joint Jog (radians). DOF={len(q)}")
                     imgui.push_item_width(360)

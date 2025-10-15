@@ -4,8 +4,7 @@ from logger import Logger
 import manipulatable_object
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement
 from run_sim import Run
-from states import States
-import step_environment
+from states import State
 from world import World
 
 from ir_support import DHRobot3D
@@ -49,7 +48,6 @@ def main():
     gui = GUIImGui()
     # estop = external_e_stop()
     # logger = Logger()
-    state = States(world)  # pass world or needed references to track state
     
 
     # robots_dict = {
@@ -74,7 +72,7 @@ def main():
                Robot4Movement(world.robot4)]
     
     # Create the main runner and pass all components
-    runner = Run(world=world, gui=gui, estop=None, state=state, logger=None, motions=motions)
+    runner = Run(world=world, gui=gui, estop=None, logger=None, motions=motions)
     
     # Start the main simulation loop (this will run until stopped)
     runner.run_loop()

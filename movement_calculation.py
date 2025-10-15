@@ -1,4 +1,3 @@
-from states import States
 from manipulatable_object import Topping
 
 import numpy as np
@@ -117,7 +116,7 @@ class MovementCalculation:
         # Simple implementation: just set target to current to freeze movement.
         self.target_joint_positions = self.robot.q
     
-    def update(self, state: States):
+    def update(self):
         """Placeholder update method to be overridden by subclasses. Computes next motion based on system state."""
         pass  # To be implemented in each subclass
 
@@ -128,7 +127,7 @@ class Robot1Movement(MovementCalculation):
         super().__init__(robot_model)
         self.sauce_applied = False  # flag to indicate if sauce task done for current pizza
     
-    def update(self, state: States):
+    def update(self, state):
         """Update Robot1 actions: if a pizza is ready for sauce, perform the sauce dispensing routine."""
         # If Robot1 is free and a pizza is ready for sauce:
         for pizza in state.pizzas:
@@ -171,7 +170,7 @@ class Robot2Movement(MovementCalculation):
         super().__init__(robot_model)
         self.toppings_placed = False  # or count of toppings placed
     
-    def update(self, state: States):
+    def update(self, state):
         """Update Robot2 actions: place toppings on pizza when ready."""
         for pizza in state.pizzas:
             if pizza.stage == "ready_for_toppings" and not self.toppings_placed:
@@ -214,7 +213,7 @@ class Robot3Movement(MovementCalculation):
         super().__init__(robot_model)
         self.pizza_in_oven = False
     
-    def update(self, state: States):
+    def update(self, state):
         """Update Robot3 actions: load pizza into oven, wait, and unload it."""
         for pizza in state.pizzas:
             if pizza.stage == "ready_for_oven" and not self.pizza_in_oven:
@@ -255,7 +254,7 @@ class Robot4Movement(MovementCalculation):
         super().__init__(robot_model)
         self.box_ready = False
     
-    def update(self, state: States):
+    def update(self, state):
         """Update Robot4 actions: pack pizza into box and load onto motorbike."""
         for pizza in state.pizzas:
             if pizza.stage == "ready_for_pack":

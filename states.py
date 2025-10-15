@@ -1,11 +1,18 @@
 from enum import Enum, auto
 
 class SystemState(Enum):
+    # For operations
     READY = auto()      # Waiting to be run
     RUNNING = auto()    # Currently executing
     BLOCKED = auto()    # Waiting (e.g. delay, waiting on semaphore, sleep)
+    ACHIEVED = auto()   # Operation has run and has finished
     SUSPENDED = auto()  # Explicitly paused by other task or API
     IDLE = auto()       # Does nothing
+    
+    
+    # For inputs
+    ACTIVE = auto()     # e.g. button pressed, sensor tripped
+    DEACTIVE = auto()   # e.g. not pressed, not tripped
 
 class State:
     """
@@ -44,9 +51,21 @@ class State:
     # Checking current state
     def is_running(self) -> bool:
         return self.state is SystemState.RUNNING
+    
+    def is_ready(self) -> bool:
+        return self.state is SystemState.READY
 
     def is_idle(self) -> bool:
         return self.state is SystemState.IDLE
+    
+    def is_achieved(self) -> bool:
+        return self.state is SystemState.ACHIEVED
+    
+    def is_suspended(self) -> bool:
+        return self.state is SystemState.SUSPENDED
+    
+    def is_active(self) -> bool:
+        return self.state is SystemState.ACTIVE
     
     def will_be_running(self) -> bool:
         return self.next_state is SystemState.RUNNING
@@ -64,9 +83,4 @@ class State:
     def step_all(cls):
         for inst in cls._instances:
             inst.update()
-    
-    # Helps with debugging
-    def __str__(self):
-        return f"<SystemProcess {self.name}: {self.state.name}>"
-    
     
