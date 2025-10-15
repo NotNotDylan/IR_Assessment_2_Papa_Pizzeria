@@ -62,9 +62,9 @@ def main():
     
     robots_dict = {  #TODO: Swap back this is tempory to test loading in and moving a robot
         1: adapter(world.robot1),
-        2: adapter(world.robot2),
+        #2: adapter(world.robot2),
         3: adapter(world.robot3),
-        # 4: adapter(world.robot4),  # robot4 is None currently
+        4: adapter(world.robot4),  # robot4 is None currently
     }
     
     # Begin GUI

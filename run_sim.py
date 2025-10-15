@@ -57,6 +57,7 @@ class Run:
                 elif robot_id == 2:  #TODO: Add in the respective robots acording to their id
                     active_robot = self.world.robot2
                     active_robot_calcs = self.robot2_motion
+                    self.robot2_motion.inverse_kinematics(SE3(4.6, 6.4944, 1.0))
                 elif robot_id == 3:
                     active_robot = self.world.robot3
                     active_robot_calcs = self.robot3_motion
@@ -109,6 +110,7 @@ class Run:
             
             
             # Small sleep to prevent excessive CPU usage
+            self.
             self.world.pizza_timing(pause_1=5, pause_2=5)
             self.world.sauce_placement()
 

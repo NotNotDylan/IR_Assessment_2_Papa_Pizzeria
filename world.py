@@ -24,10 +24,10 @@ class World:
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
         self.robot_test = None   # Robot I am using to temporaly test the GUI
-        self.robot1 = IRB_4600()         # Robot performing sauce application
-        self.robot2 = IRB2400()        # Robot performing topping placement
-        self.robot3 = UR3()        # Robot handling oven loading/unloading
-        self.robot4 = None         # Robot packaging and loading pizza on bike
+        self.robot1 = UR3()         # Robot performing sauce application
+        self.robot2 = None        # Robot performing topping placement
+        self.robot3 = IRB_4600()        # Robot handling oven loading/unloading
+        self.robot4 = IRB2400()        # Robot packaging and loading pizza on bike
         self.conveyors = []        # List of ConveyorBelt objects in the system
         self.motorbike = None      # The motorbike object (for delivery)
         self.safety_barriers = []  # Any safety barrier objects (e.g., fences, light curtain representation)
@@ -146,14 +146,15 @@ class World:
         # Add robots to the Swift environment: self.env.add(self.robot1)
         
         # self.env.add(self.robot_test)
-        self.robot2.add_to_env(self.env)
-        self.robot2.base = SE3(5.8486, 6.4944, 0.5)
-
+        self.robot1.base = SE3(4.6,4.05,1.0)
         self.robot1.add_to_env(self.env)
-        self.robot1.base = SE3(9.72,5.6,0.5)
-
+        
+        self.robot3.base = SE3(9.72,5.6,0.5)
         self.robot3.add_to_env(self.env)
-        self.robot3.base = SE3(4.6,4.05,1.0)
+
+        self.robot4.base = SE3(5.84, 6.49, 0.5)
+        self.robot4.add_to_env(self.env)
+        
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
