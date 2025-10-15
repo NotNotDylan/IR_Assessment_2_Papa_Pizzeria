@@ -1,15 +1,8 @@
-# Tasks
+# Tasks to be completed
 
-Dylan:
-
-- Getting teach functonality through the GUI to work with the panada robot
-- Make and modle robot
-
-Aiden:
-
-- Make and modle robot
-- Get assets and put them into the environment
-
-Akaal:
-
-- Make and modle robot
+- Make manipuable objects class
+  - It works by making a point in space and asigning stl's to follow that point
+  - Alows me to move the point
+  - Alowes me to add other manipulatable obects to the point to follow at any point
+- Organise the movments of the robots
+- Program the movment functions
