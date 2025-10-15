@@ -14,21 +14,47 @@ import spatialgeometry as geometry
 import os
 import spatialmath.base as spb
 from spatialmath import SE3
+import numpy as np
+import threading
+
+
 
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
-        self.robot_test = IRB2400()    # Robot I am using to temporaly test the GUI
-        self.robot1 = None         # Robot performing sauce application
-        self.robot2 = None         # Robot performing topping placement
-        self.robot3 = None         # Robot handling oven loading/unloading
-        self.robot4 = None         # Robot packaging and loading pizza on bike
+        self.robot_test = None   # Robot I am using to temporaly test the GUI
+        self.robot1 = UR3()         # Robot performing sauce application
+        self.robot2 = None        # Robot performing topping placement
+        self.robot3 = IRB_4600()        # Robot handling oven loading/unloading
+        self.robot4 = IRB2400()        # Robot packaging and loading pizza on bike
         self.conveyors = []        # List of ConveyorBelt objects in the system
         self.motorbike = None      # The motorbike object (for delivery)
         self.safety_barriers = []  # Any safety barrier objects (e.g., fences, light curtain representation)
         self.objects = []          # List to hold other objects (pizzas, toppings, etc. currently in scene)
         # (Other environment attributes can be added as needed)
+        self.last_update = time.time()
+        self.plates = []
+        self.x = 4.05
+        self.y = 3.6
+        self.z = 0.99
+        self.loop = 1
+        self.loop2 = 1
+        self.first_period = 0.25
+        self.last_time = 0.25
+        self.displacement = 0.1
+        self.last_time_pizza = 0.25
+        self.x_pizza = 3.5
+        self.y_pizza = 3.6
+        self.z_pizza = 1.015
+        self.last_pizza_time = float(self.env.sim_time)
+        self.pos1 = SE3(4.6, 3.6, 1.015)
+        self.pos2 = SE3(6.5, 3.6, 1.015)
+        self.pos3 = SE3(8.7, 3.6, 1.015)
+        self.pos = 1
+        self.sauce_placed = False
+        
+
     
     def launch(self, environment_objects: bool = False):
         """Start the simulator and set up the static scene (floor, walls, etc.)."""
@@ -53,13 +79,13 @@ class World:
                         color=(1.0,1.0,0.0,1.0))
             self.env.add(floor)
 
-            Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.2.stl"),
+            Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.3.stl"),
                        color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_One)
 
-            Conveyer_Two = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Second_Conveyer2.0.1.stl"),
-                        color=(0.5,0.5,0.5,1.0))
-            self.env.add(Conveyer_Two)
+            Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
+                        color=(0.588, 0.294, 0.0))
+            self.env.add(Table)
 
             Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
                         color=(0.886,0.447,0.357,1.0))
@@ -70,7 +96,7 @@ class World:
             self.env.add(Light_Fence_Post)
             #DYALN
             Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
-                        color=(0.5,0.5,0.5,1.0), pose=SE3(6.97, 5.5, 0), scale=[1,1,0.5])
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(5.8486, 6.4944, 0), scale=[1,1,0.5])
             self.env.add(Pillar_1)
             #AIDAN
             Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
@@ -84,6 +110,27 @@ class World:
             Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
+            
+            self.plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+                          pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
+            self.env.add(self.plate)
+
+            self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+                          pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
+            self.env.add(self.plate2)
+
+            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
+                          pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
+            self.env.add(self.pizza)
+
+            self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
+                              pose = SE3(0,0,0), color=(0.698, 0.133, 0.133))
+
+
+
+            
+
+            print(self.plates)
             # Floor
             # Safety
             # Decorations
@@ -99,8 +146,15 @@ class World:
         # Add robots to the Swift environment: self.env.add(self.robot1)
         
         # self.env.add(self.robot_test)
-        self.robot_test.add_to_env(self.env)
-        # self.robot_test.base = SE3(6.97,5.5,0.5)
+        self.robot1.base = SE3(4.6,4.05,1.0)
+        self.robot1.add_to_env(self.env)
+        
+        self.robot3.base = SE3(9.72,5.6,0.5)
+        self.robot3.add_to_env(self.env)
+
+        self.robot4.base = SE3(5.84, 6.49, 0.5)
+        self.robot4.add_to_env(self.env)
+        
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
@@ -132,20 +186,79 @@ class World:
         if obj in self.objects:
             self.objects.remove(obj)
 
-class ConveyorBelt:
-    """Represents a conveyor belt that moves objects from a start position to an end position."""
-    def __init__(self, start_pose: SE3, end_pose: SE3, speed: float):
-        self.start_pose = start_pose  # SE3 start location of conveyor
-        self.end_pose = end_pose      # SE3 end location of conveyor
-        self.speed = speed           # movement speed (units per second) along conveyor
-        self.active = True           # whether the conveyor is currently moving or stopped
+    # def conveyorBelt_Movement(self):
+    #     self.env.swift_objects.remove(self.plate)
+    # def safe_remove_from_swift(self, env, obj):
+    #     if not hasattr(env, "swift_objects"):
+    #         return
+    #     swift_objects = getattr(env, "swift_objects")
+
+    #     # Iterate through the list in steps of 2 because it’s [obj, pose, obj, pose, ...]
+    #     for i in range(0, len(swift_objects) - 1, 2):
+    #         if swift_objects[i] is obj:
+    #             # Remove both the object and its associated pose
+    #             del swift_objects[i:i+2]
+    #             print(f"Removed {obj} safely from Swift environment")
+    #             return
+    #     print(f"Object {obj} not found in Swift environment")
+
+
+    def conveyorBelt_Movement(self, plate1, plate2, direction, period): 
+        self.t = float(self.env.sim_time)
+        if self.t - self.last_time >= period:
+            if self.loop == 1: 
+                plate1.T = plate1.T @ SE3((direction)*self.displacement, 0, 0).A
+                plate2.T = plate2.T @ SE3((direction)*-(self.displacement), 0, 0).A
+                self.loop = 2
+
+            elif self.loop == 2:
+                plate1.T = plate1.T @ SE3((direction)*-(self.displacement), 0, 0).A
+                plate2.T = plate2.T @ SE3((direction)*self.displacement, 0, 0).A
+                self.loop = 1   
+
+            self.last_time = self.t
+
+    def pizza_movement(self, pos, period):  
+        self.t = float(self.env.sim_time) 
+        if not np.allclose((self.pizza.T), (SE3(pos).A)): 
+            print(self.pizza.T) 
+            #if (self.pizza.T) != (SE3(x1, y1, z1).A):
+            if self.t - self.last_time_pizza >= period:
+                self.pizza.T = self.pizza.T @ SE3(self.displacement, 0, 0).A
+                self.sauce_movement()
+                self.last_time_pizza = self.t
+            self.conveyorBelt_Movement(plate1=self.plate,plate2=self.plate2,direction=1,period=0.25)
+            
     
-    def move_object(self, obj: ManipulatableObject, dt: float) -> bool:
-        """Move the given object along the conveyor by distance = speed*dt.
-        Returns True if object has reached the end of conveyor."""
-        # TODO: Compute movement along conveyor direction.
-        # You might parameterize conveyor by a vector from start to end and move object accordingly.
-        # For simplicity, assume straight line from start_pose to end_pose.
-        # Update obj position by small step towards end.
-        # If end reached or exceeded, return True (meaning object should transfer to next stage or conveyor).
-        return False
+    def pizza_timing(self, pause_1, pause_2):
+        self.t = float(self.env.sim_time)
+        match self.pos:
+            case 1:
+                self.t = float(self.env.sim_time)
+                self.last_pizza_time = float(self.env.sim_time) 
+                self.pizza_movement(pos=self.pos1,period=0.25)
+                if np.allclose((self.pizza.T), (SE3(self.pos1).A)):
+                    self.pos = 2
+
+            case 2:
+                self.t = float(self.env.sim_time)
+                if self.t - self.last_pizza_time >= pause_1:
+                    self.pizza_movement(pos=self.pos2,period=0.25)
+                if np.allclose((self.pizza.T), (SE3(self.pos2).A)):
+                    self.last_pizza_time = float(self.env.sim_time)
+                    self.pos = 3
+                    
+            case 3:
+                self.t = float(self.env.sim_time)
+                if self.t - self.last_pizza_time >= pause_2:
+                    self.pizza_movement(pos=self.pos3,period=0.25)
+
+    def sauce_placement(self):
+        if np.allclose((self.pizza.T), (SE3(self.pos1).A)):
+            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A
+            self.env.add(self.sauce)
+            self.sauce_placed = True
+
+    def sauce_movement(self):
+        if self.sauce_placed == True:
+            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A
