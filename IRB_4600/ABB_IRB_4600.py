@@ -53,8 +53,8 @@ class IRB_4600(DHRobot3D):
             spb.transl(0.17195, -0.1225, 0.495)  @ spb.trotx(pi/2),    # link2: upper arm
             spb.transl(0.17301, -0.1492     , 1.59)  @ spb.trotx(-pi/2),    # link3: forearm
             spb.transl(0.5151, 0.0, 1.765)  @ spb.troty( pi/2),    # wrist1
-            spb.transl(1.3515, 0     , 1.765)  @ spb.trotx(-pi/2),    # wrist2
-            spb.transl(1.4565 , 0     , 1.765)  @ spb.troty( pi/2),    # wrist3 (flange)
+            spb.transl(1.4055, -0.0205     , 1.765)  @ spb.trotx(-pi/2),    # wrist2
+            spb.transl(1.4565 , 0.0     , 1.765)  @ spb.troty( pi/2),    # wrist3 (flange)
         ]
 
         current_path = os.path.abspath(os.path.dirname(__file__))
@@ -77,10 +77,10 @@ class IRB_4600(DHRobot3D):
         """
         # --- Derived values from your CAD ---
         # axis   d (m)=displacment along z     a (m)=length between     alpha (rad)=rot around x     qlim (rad)
-        a      = [ 0.175, 1.095, 0.175,   0.000, 0.000, 0.000 ]
-        d      = [ 0.495,    0.02,   0.149, 1.2305,   0.0, 0.085 ]
-        alpha  = [ -pi/2,    0.0, -pi/2, 0.0, +pi/2,   0.0 ]  
-        offset = [     0,      -pi/2,     0,     0,     pi, 0 ]
+        a      = [0.175,  1.095, 0.175,   0.0,   0.0,  0.000 ]
+        d      = [0.495, 0.00,  0.0,   1.2305, 0.00,  0.085]
+        alpha  = [-pi/2,  0.0,   -pi/2,   +pi/2,  +pi/2, 0.0 ]  
+        offset = [    0,  -pi/2,     0,   0,      pi,     0 ]
         
         
         # Axis ranges from ABB spec (convert degrees to radians)

@@ -23,7 +23,6 @@ class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
-        self.robot_test = None   # Robot I am using to temporaly test the GUI
         self.robot1 = UR3()         # Robot performing sauce application
         self.robot2 = None        # Robot performing topping placement
         self.robot3 = IRB_4600()        # Robot handling oven loading/unloading
@@ -119,16 +118,13 @@ class World:
                           pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
             self.env.add(self.plate2)
 
-            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
-                          pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
-            self.env.add(self.pizza)
+            # self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
+            #               pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
+            # self.env.add(self.pizza)
 
-            self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
-                              pose = SE3(0,0,0), color=(0.698, 0.133, 0.133))
+            # self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
+            #                   pose = SE3(0,0,0), color=(0.698, 0.133, 0.133))
 
-
-
-            
 
             print(self.plates)
             # Floor
@@ -169,7 +165,7 @@ class World:
         # TODO: Add any safety barriers or light curtain visuals (if any)
         # e.g., a transparent plane or lines indicating the light curtain region.
     
-    def add_object(self, obj):
+    '''def add_object(self, obj):
         """Add a manipulatable object (pizza, topping, etc.) to the environment and keep track of it."""
         # Add object to environment and internal list
         if self.env:
@@ -261,4 +257,4 @@ class World:
 
     def sauce_movement(self):
         if self.sauce_placed == True:
-            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A
+            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A'''

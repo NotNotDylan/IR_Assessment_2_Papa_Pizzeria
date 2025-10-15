@@ -28,11 +28,11 @@ class Run:
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop)
         
         # Creating only one instance of the robot movment and calcuation objects
-        self.robot_test_motion = MovementCalculation(self.world.robot_test)
-        # self.robot1_motion = self.motions[0]
+        # self.robot_test_motion = MovementCalculation(self.world.robot_test)
+        self.robot1_motion = self.motions[0]
         # self.robot2_motion = self.motions[1]
-        # self.robot3_motion = self.motions[2]
-        # self.robot4_motion = self.motions[3]
+        self.robot3_motion = self.motions[2]
+        self.robot4_motion = self.motions[3]
         
         self.dt = 0.05 # change in time between updates
         self.time_in_loop = 0
@@ -42,10 +42,10 @@ class Run:
     def run_loop(self):
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
-        qtraj = self.test_inverse_kinamatics()
+        # qtraj = self.test_inverse_kinamatics()
         
         inputs = {
-            "Test qtraj" : qtraj
+            "Test qtraj" : None #qtraj
         }
         
         # Initilises all the varable states used in the program
@@ -63,88 +63,39 @@ class Run:
             
             # Effects are enacted
             self.handle_actions(inputs)
-            
-            # if self.counter < len(qtraj):
-            #     self.world.robot_test.q = qtraj[self.counter]
-            #     self.world.env.step(self.dt)
                 
             # Step the environment to update visuals
             self.world.env.step(self.dt)
             
-            # self.counter += 1
-            
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)
             
-            ''' Structure I can follow:
-            # 1. Check for emergency stop signals (hardware or GUI e-stop)
-            if self.estop.check_stop() or self.gui.estop_pressed:
-                # If an e-stop is triggered, log it and enter a paused state
-                self.logger.log_event("Emergency stop triggered! Pausing all operations.")
-                self.paused = True
-                # Optionally, command all robots to stop immediately (e.g., set zero velocities)
-                for motion in self.motions:
-                    motion.emergency_stop()
-            
-            # 2. If paused (either due to e-stop or user pause), wait until resume is requested
-            if self.paused:
-                # If e-stop is released and user hits resume on GUI, then continue
-                if self.gui.resume_requested and not self.estop.is_pressed:
-                    self.logger.log_event("Resuming operations after pause.")
-                    self.paused = False
-                    self.gui.resume_requested = False
-                else:
-                    # Skip the rest of loop and continue checking stop/resume
-                    time.sleep(0.01)
-                    self.world.env.step(0.01)  # still update environment to keep it responsive
-                    continue  # go back to start of loop
-            
-            # 3. Update the state of pizzas, conveyors, etc. (e.g., if a pizza moved to next station)
-            self.state.update()
-            
-            # 4. Compute movements for each robot based on current state and task
-            for motion in self.motions:
-                # Each robot's motion controller decides its next action or continues current one
-                motion.update(self.state)
-            
-            # 5. Log the current status (optional: log robot joint angles, pizza positions, etc.)
-            self.logger.log_status(self.state, self.motions)
-            
-            # 6. Apply the calculated movements and environment updates (move robots, conveyors, spawn/despawn objects)
-            step_environment.apply(self.world, self.state, self.motions)
-            
-            # 7. Step the simulation environment forward by a time increment (e.g., delta_t)
-            self.world.env.step(self.state.time_step)
-            
-            # 8. (Optional) Check for a condition to stop the simulation loop
-            if self.gui.stop_pressed:
-                self.logger.log_event("Stop button pressed. Exiting simulation loop.")
-                self.running = False
-                '''
         
         # End of loop - clean up if necessary (e.g., close env if not holding)
         # (The world.env.hold() call can be done after this function returns.)
     
     def test_inverse_kinamatics(self):
-        curent_q = self.world.robot_test.q
+        curent_q = self.world.robot1.q
         
         goal = SE3(0.5788,1.27,0.8437)
-        goal_q = self.robot_test_motion.inverse_kinematics(goal)
+        goal_q = self.robot1_motion.inverse_kinematics(goal)
         
         qtraj = rtb.jtraj(curent_q, goal_q, 80).q
         return qtraj
         
     def set_robot_to_move_GUIHelper(self, robot_id):
         if robot_id == 1: 
-            self.active_robot = self.world.robot_test
-            self.active_robot_calcs = self.robot_test_motion
-        elif robot_id == 2:  #TODO: Add in the respective robots acording to their id
-            active_robot = None
-            active_robot_calcs = None
+            self.active_robot = self.world.robot1
+            self.active_robot_calcs = self.robot1_motion
+        # elif robot_id == 2:
+        #     self.active_robot = self.world.robot2
+        #     self.active_robot_calcs = self.robot2_motion
         elif robot_id == 3:
-            pass
+            self.active_robot = self.world.robot3
+            self.active_robot_calcs = self.robot3_motion
         elif robot_id == 4:
-            pass
+            self.active_robot = self.world.robot4
+            self.active_robot_calcs = self.robot4_motion
         
     
     def handle_gui(self):
