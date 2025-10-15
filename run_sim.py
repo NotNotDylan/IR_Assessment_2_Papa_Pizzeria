@@ -36,17 +36,16 @@ class Run:
         
         self.dt = 0.05 # change in time between updates
         self.time_in_loop = 0
-        # self.counter = 0
+        
+        self.actions_inputs = {}
         
     
     def run_loop(self):
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
-        # qtraj = self.test_inverse_kinamatics()
+        qtraj = self.test_inverse_kinamatics()
         
-        inputs = {
-            "Test qtraj" : None #qtraj
-        }
+        self.actions_inputs["Test qtraj"] = qtraj
         
         # Initilises all the varable states used in the program
         self.state_init()
@@ -62,7 +61,7 @@ class Run:
             self.handle_gui()
             
             # Effects are enacted
-            self.handle_actions(inputs)
+            self.handle_actions(self.actions_inputs)
                 
             # Step the environment to update visuals
             self.world.env.step(self.dt)
@@ -184,7 +183,7 @@ class Run:
             
     def handle_actions(self, inputs: dict):
         if self.OPERATION.is_running():
-            self.world.robot_test.q = inputs.get("Test qtraj")[self.OPERATION_Counter]
+            self.world.robot1.q = inputs.get("Test qtraj")[self.OPERATION_Counter]
             self.OPERATION_Counter += 1
             if self.OPERATION_Counter == 80:
                 self.OPERATION.set_state(SS.ACHIEVED)
