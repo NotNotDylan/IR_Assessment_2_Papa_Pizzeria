@@ -39,7 +39,7 @@ def main():
     """Main entry point: Initialize world, robots, GUI, and run the simulation."""
     # Initialize simulation world and environment
     world = World()
-    world.launch(environment_objects=False)  # Launch Swift simulator and load environment objects
+    world.launch(environment_objects=True)  # Launch Swift simulator and load environment objects
     # Initialize robots and other objects in the world
     # (Assume World class handles adding robots, conveyors, etc.)
     world.setup_robots_and_objects()
@@ -50,16 +50,16 @@ def main():
     # logger = Logger()
     
 
-    # robots_dict = {
-    #     1: adapter(world.robot1),
-    #     2: adapter(world.robot2),
-    #     3: adapter(world.robot3),
-    #     4: adapter(world.robot4),
-    # }
-    
-    robots_dict = {  #TODO: Swap back this is tempory to test loading in and moving a robot
-        1: adapter(world.robot_test)
+    robots_dict = {
+        1: adapter(world.robot1),
+        2: adapter(world.robot2),
+        3: adapter(world.robot3),
+        4: adapter(world.robot4),
     }
+    
+    # robots_dict = {  #TODO: Swap back this is tempory to test loading in and moving a robot
+    #     1: adapter(world.robot_test)
+    # }
     
     # Begin GUI
     gui.bind_robots(robots_dict, default_robot=1)
