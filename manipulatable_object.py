@@ -7,7 +7,7 @@ from ir_support import UR3
 from spatialgeometry import Mesh
 from spatialmath import SE3
 
-class PizzaParts:
+class ObjectNode:
     """
     Minimal scene-graph node for Swift/SpatialGeometry meshes with parent-child attachments.
     - Absolute pose lives in self.mesh.pose (SE3)
@@ -15,9 +15,9 @@ class PizzaParts:
     """
 
     def __init__(self, env: swift, pose: SE3, stl_path: str, color=(0.6, 0.6, 0.6, 1.0), name: Optional[str] = None):
-        
+
         self.env = env
-        
+
         if not isinstance(pose, SE3):
             raise TypeError("pose must be an SE3")
         if not os.path.isfile(stl_path):
@@ -26,11 +26,11 @@ class PizzaParts:
         self.name = name or os.path.basename(stl_path)
         self.mesh = Mesh(filename=stl_path, color=color, pose=pose)
 
-        self.parent: Optional['PizzaParts'] = None
-        self.children: List['PizzaParts'] = []
+        self.parent: Optional['ObjectNode'] = None
+        self.children: List['ObjectNode'] = []
         # Pose of THIS node relative to parent (parent -> this). Identity if no parent.
         self._T_parent_this: SE3 = SE3()
-     
+
     # ----------- Convenience accessors -----------
     @property
     def pose(self) -> SE3:
@@ -69,7 +69,7 @@ class PizzaParts:
             raise TypeError("delta must be an SE3")
         self.set_pose(self.pose * delta, propagate=True)
 
-    def attach_to(self, parent: 'PizzaParts', keep_world_pose: bool = True) -> None:
+    def attach_to(self, parent: 'ObjectNode', keep_world_pose: bool = True) -> None:
         """
         Attach this node under `parent`.
         If keep_world_pose=True, the part does not jump: we compute and store the current relative transform.
@@ -136,7 +136,7 @@ class PizzaParts:
             child.pose = self.pose * child._T_parent_this
             child._propagate_to_descendants()
 
-    def is_descendant_of(self, other: 'PizzaParts') -> bool:
+    def is_descendant_of(self, other: 'ObjectNode') -> bool:
         p = self.parent
         while p is not None:
             if p is other:
@@ -145,7 +145,11 @@ class PizzaParts:
         return False
 
     def __repr__(self) -> str:
-        return f"PizzaParts(name={self.name!r}, children={len(self.children)}, attached={self.parent is not None})"
+        return f"ObjectNode(name={self.name!r}, children={len(self.children)}, attached={self.parent is not None})"
+
+
+# Backwards-compatible alias for existing code
+PizzaParts = ObjectNode
 
 
 
