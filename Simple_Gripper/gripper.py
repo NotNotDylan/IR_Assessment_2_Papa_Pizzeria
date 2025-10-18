@@ -13,6 +13,7 @@ import swift
 import time
 
 # TODO: Attach it to a robot
+# TODO: Make it specilised for my robot, that will alow me to neaten the whole thing up a heap and make the code way more practical
 
 class SimpleGripper(ObjectNode):
     def __init__(
