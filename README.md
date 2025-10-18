@@ -1,8 +1,6 @@
 # Tasks to be completed
 
-- Make manipuable objects class
-  - It works by making a point in space and asigning stl's to follow that point
-  - Alows me to move the point
-  - Alowes me to add other manipulatable obects to the point to follow at any point
-- Organise the movments of the robots
+- Add a gripper to the end of the robot
+- Organise the movments of the robots (figure out how each of them are ment to move)
 - Program the movment functions
+- Make an e-stop with the arduino  
