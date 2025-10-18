@@ -1,4 +1,4 @@
-from manipulatable_object import Topping
+from manipulatable_object import PizzaParts
 
 import numpy as np
 from spatialmath import SE3
@@ -172,7 +172,7 @@ class Robot2Movement(MovementCalculation):
     
     def update(self, state):
         """Update Robot2 actions: place toppings on pizza when ready."""
-        for pizza in state.pizzas:
+        """for pizza in state.pizzas:
             if pizza.stage == "ready_for_toppings" and not self.toppings_placed:
                 # Example procedure: pick up a topping from a bin, place on pizza, repeat for all toppings.
                 # You might have predefined bin locations for toppings.
@@ -204,8 +204,9 @@ class Robot2Movement(MovementCalculation):
                 pizza.stage = "toppings_done"
                 state.robot_busy[2] = False
                 # Restart conveyor 2 to move pizza to next station (oven)
-                state.world.conveyors[1].active = True
-        return
+                state.world.conveyors[1].active = True"""
+        #return
+        pass
 
 class Robot3Movement(MovementCalculation):
     """Controls Robot 3 (Oven handling robot) movements and task execution."""

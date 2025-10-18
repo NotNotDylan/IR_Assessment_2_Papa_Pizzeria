@@ -1,4 +1,4 @@
-import external_e_stop
+from external_e_stop import ExternalEStop
 from imgui_GUI import GUIImGui
 from logger import Logger
 import manipulatable_object
@@ -17,7 +17,7 @@ from spatialmath import SE3
 
 class Run:
     """Main controller for running the simulation loop and coordinating all components."""
-    def __init__(self, world: World, gui: GUIImGui, estop: external_e_stop, 
+    def __init__(self, world: World, gui: GUIImGui, estop: ExternalEStop, 
                  logger: Logger, motions: list):
         self.world = world
         self.gui = gui
@@ -53,7 +53,7 @@ class Run:
         while self.running:
             # For event managment
             self.time_in_loop = float(self.world.env.sim_time)
-            
+                        
             # Update states
             self.handle_states()
             
@@ -98,6 +98,10 @@ class Run:
         
     
     def handle_gui(self):
+        
+        is_paused = (self.OPERATION.is_suspended() or not self.OPERATION.is_running())
+        self.gui.set_system_paused(is_paused)
+        
         # Update GUI and process events
         if self.gui:
             self.gui.tick()
@@ -161,6 +165,11 @@ class Run:
                     
     def handle_states(self):
         """No operation are done here only state logic"""
+        
+        # Hardware e-stop poll (fail-safe if link stale)
+        if self.external_estop and self.external_estop.check_stop():
+            self.E_Stop.set_state(SS.ACTIVE)
+            self.gui._estop_latched = True
         
         # Main operation controle
         if self.OPERATION.is_ready() and self.Start.is_active():

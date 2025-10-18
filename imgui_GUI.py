@@ -224,7 +224,7 @@ class GUIImGui:
             #     self._events.append(('Start', None))
 
         # --- Robot selection ---
-        if self.system_paused:
+        if self.system_paused and not self._estop_latched:
             imgui.separator()
             imgui.text("Manual Teach (one robot at a time)")
             if self._robots:

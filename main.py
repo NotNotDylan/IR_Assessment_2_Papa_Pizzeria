@@ -1,4 +1,4 @@
-import external_e_stop
+from external_e_stop import ExternalEStop
 from imgui_GUI import GUIImGui
 from logger import Logger
 import manipulatable_object
@@ -40,13 +40,11 @@ def main():
     # Initialize simulation world and environment
     world = World()
     world.launch(environment_objects=True)  # Launch Swift simulator and load environment objects
-    # Initialize robots and other objects in the world
-    # (Assume World class handles adding robots, conveyors, etc.)
     world.setup_robots_and_objects()
     
     # Initialize GUI and safety systems
     gui = GUIImGui()
-    # estop = external_e_stop()
+    estop = ExternalEStop(port='COM6', baud=115200, ex_estop_connected=False) # Will try auto detect if no port asserted
     # logger = Logger()
     
 
@@ -68,7 +66,7 @@ def main():
                Robot4Movement(world.robot4)]
     
     # Create the main runner and pass all components
-    runner = Run(world=world, gui=gui, estop=None, logger=None, motions=motions)
+    runner = Run(world=world, gui=gui, estop=estop, logger=None,motions=motions)
     
     # Start the main simulation loop (this will run until stopped)
     runner.run_loop()

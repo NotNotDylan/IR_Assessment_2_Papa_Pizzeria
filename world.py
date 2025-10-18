@@ -1,4 +1,4 @@
-from manipulatable_object import ManipulatableObject
+from manipulatable_object import PizzaParts
 
 import swift
 import roboticstoolbox as rtb
@@ -66,6 +66,8 @@ class World:
         # self.env.add(floor)
         
         self.env.launch(realtime=True)
+        
+        self.env.set_camera_pose([8, 14, 7], [8, 3, 0])
         
         
         if environment_objects == True:
