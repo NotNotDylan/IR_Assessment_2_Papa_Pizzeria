@@ -30,16 +30,23 @@ class PizzaParts:
         self.children: List['PizzaParts'] = []
         # Pose of THIS node relative to parent (parent -> this). Identity if no parent.
         self._T_parent_this: SE3 = SE3()
-
+     
     # ----------- Convenience accessors -----------
     @property
     def pose(self) -> SE3:
-        print(self.mesh.T)
-        return self.mesh.T
+        # mesh.T may be an ndarray or SE3 depending on version; normalize to SE3
+        T = self.mesh.T
+        return T if isinstance(T, SE3) else SE3(T)
 
     @pose.setter
     def pose(self, new_pose: SE3):
-        self.set_pose(new_pose)
+        if not isinstance(new_pose, SE3):
+            raise TypeError("new_pose must be an SE3")
+        # Some versions accept SE3 directly; others want a 4x4
+        try:
+            self.mesh.T = new_pose
+        except Exception:
+            self.mesh.T = new_pose.A
 
     # ----------- Core operations -----------
     def set_pose(self, new_pose: SE3, propagate: bool = True) -> None:
@@ -47,7 +54,7 @@ class PizzaParts:
         if not isinstance(new_pose, SE3):
             raise TypeError("new_pose must be an SE3")
 
-        self.mesh.pose = new_pose
+        self.pose = new_pose
 
         # If this node has a parent, keep the stored relative transform consistent with the new absolute pose.
         if self.parent is not None:
@@ -126,7 +133,7 @@ class PizzaParts:
     def _propagate_to_descendants(self) -> None:
         """Recompute absolute poses for all descendants from stored relative transforms."""
         for child in self.children:
-            child.mesh.pose = self.pose * child._T_parent_this
+            child.pose = self.pose * child._T_parent_this
             child._propagate_to_descendants()
 
     def is_descendant_of(self, other: 'PizzaParts') -> bool:
@@ -142,13 +149,13 @@ class PizzaParts:
 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # I sugest that you pause and zoom out alot to actualy see this test
     
     env = swift.Swift()
     env.launch(realtime=True)
     
-    base = PizzaParts(env, SE3(6.52, 4.40, 0.00), "Environment/Pillar.stl", color=(0.5,0.5,0.5,1.0), name="PillarA")
-    arm  = PizzaParts(env, SE3(6.82, 4.40, 0.20), "Environment/Table.stl",    color=(0.8,0.2,0.2,1.0), name="ArmOnA")
+    base = PizzaParts(env, SE3(0.0, 0.0, 0.0), "IRB_4600/Base.stl", color=(0.5,0.5,0.5,1.0), name="PillarA")
+    arm  = PizzaParts(env, SE3(0.6, 0.4, 0.2), "IRB_4600/Link_1.stl",    color=(0.8,0.2,0.2,1.0), name="ArmOnA")
 
     base.add_to_world()
     arm.add_to_world()
@@ -156,8 +163,17 @@ if __name__ == "__main__":
     # Attach the arm to the pillar, preserving its current placement
     arm.attach_to(base, keep_world_pose=True)
 
-    # Move the pillar — arm follows with its saved relative offset
-    base.move_by(SE3.Tx(0.25) * SE3.Rz(0.35))
+    for i in range(25):
+        # Move the pillar — arm follows with its saved relative offset
+        base.move_by(SE3.Tx(0.025 * i) * SE3.Rz(0.035))
+        env.step(0.05)
 
-    # You can also reposition the arm directly; its relative transform updates automatically
-    arm.set_pose(SE3(7.00, 4.50, 0.30) * SE3.Rz(0.1))
+    for i in range(25):
+        # You can also reposition the arm directly; its relative transform updates automatically
+        arm.set_pose(SE3(0.010 * i, 0.050 * i, 0.30) * SE3.Rz(0.01 * i))
+        env.step(0.05)
+        
+    for i in range(25):
+        # Move the pillar — arm follows with its saved relative offset
+        base.move_by(SE3.Tx(0.025 * i) * SE3.Rz(0.035))
+        env.step(0.05)
