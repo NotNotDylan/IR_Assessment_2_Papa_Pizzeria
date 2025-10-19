@@ -43,66 +43,6 @@ class MovementCalculation:
         
         return np.asarray(sol, dtype=float)
     
-    def compute_jacobian(self, q=None):
-        """Compute the robot Jacobian at joint configuration q (or current q)."""
-        if q is None:
-            q = self.robot.q
-        # If using RTB, many models have a .jacob0 or .jacobe method for Jacobian
-        try:
-            J = self.robot.jacob0(q)
-        except Exception:
-            J = self.robot.jacob0(q, end=None)  # depending on RTB version, might need specifying end link
-        return J
-    
-    def detect_singularity(self, J=None):
-        """Check manipulability and return True if near singularity."""
-        if J is None:
-            J = self.compute_jacobian()
-        # Compute manipulability measure (sigma_min or sqrt(det(J*J^T)) etc.)
-        try:
-            # One measure: product of singular values (which is sqrt(det(JJ^T)))
-            U, S, V = np.linalg.svd(J)
-            manipulability = np.prod(S)
-        except Exception:
-            # If J is not square etc., use det(JJT) if possible:
-            JJt = J @ J.T
-            manipulability = np.sqrt(np.linalg.det(JJt)) if JJt.shape[0] == JJt.shape[1] else 0
-        # Define a threshold (epsilon) for near singularity
-        epsilon = 1e-3  # TODO: adjust threshold as appropriate
-        return manipulability < epsilon
-    
-    def damped_pseudoinverse(self, J, lambda_coeff=0.1):
-        """Compute the damped least squares pseudoinverse of Jacobian J."""
-        # DLS formula: J_damped_inv = J^T * (J*J^T + lambda^2 I)^-1
-        JJt = J @ J.T
-        n = JJt.shape[0]
-        damp_matrix = JJt + (lambda_coeff**2) * np.eye(n)
-        inv_damp = np.linalg.inv(damp_matrix)
-        J_damped_inv = J.T @ inv_damp
-        return J_damped_inv
-    
-    def compute_velocity_command(self, current_pose: SE3, desired_pose: SE3, dt: float):
-        """Compute end-effector velocity needed to move from current_pose to desired_pose in time dt."""
-        # Compute position error
-        pos_error = desired_pose.t - current_pose.t  # 3x1 vector difference in translation
-        # Compute orientation error (for simplicity, using Euler angles or rotation matrix difference)
-        Rd = desired_pose.R
-        Ra = current_pose.R
-        R_err = Rd @ Ra.T  # rotation from current to desired
-        # Convert rotation error to axis-angle or equivalent (small-angle approximation for velocity)
-        # For a small rotation, we can extract axis-angle from R_err (or use log map).
-        # Here, we just take the skew-symmetric part as angular velocity * dt
-        delta_theta = np.array([0, 0, 0])
-        # TODO: extract small rotation (e.g., using spatialmath's Log or angle between orientations)
-        # Simplification: assume orientation errors are small, so use difference of R matrices
-        # (Better: use `smbase.tr2rpy(R_err)` or similar to get roll-pitch-yaw error.)
-        # 
-        # Now form the end-effector velocity vector (6x1) [vx, vy, vz, wx, wy, wz]^T
-        linear_vel = pos_error * (1.0/dt)
-        angular_vel = delta_theta * (1.0/dt)
-        xdot = np.hstack((linear_vel, angular_vel))
-        return xdot
-    
     def avoid_collisions(self, q_candidate):
         """Collision check for a candidate joint configuration or path. 
         Returns True if a collision is detected and avoidance action is needed."""
@@ -110,6 +50,7 @@ class MovementCalculation:
         # You could use bounding boxes or simple distance thresholds between robot links and known obstacles (including other robots or the intruding object).
         # If collision predicted, you might modify q_candidate or set a flag to delay motion.
         # For now, return False (no collision) by default.
+        
         return False
     
     def emergency_stop(self):

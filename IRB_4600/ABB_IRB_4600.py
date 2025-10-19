@@ -7,8 +7,13 @@ import roboticstoolbox as rtb
 import spatialmath.base as spb
 from spatialmath import SE3
 from spatialgeometry import Arrow
+import numpy as np
+from scipy import linalg
 
 from ir_support.robots.DHRobot3D import DHRobot3D
+from roboticstoolbox import DHLink, DHRobot, models, jtraj, trapezoidal
+from ir_support import CylindricalDHRobotPlot
+
 
  
     
@@ -92,11 +97,19 @@ class IRB_4600(DHRobot3D):
             [deg2rad(-125), deg2rad(+120)],        # A5 ±120
             [deg2rad(-400), deg2rad(+400)],        # A6 ±400
         ]
+        
+        
 
         links = []
         for i in range(6):
-            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], offset=offset[i], qlim=qlim[i]))
+            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], offset=offset[i], qlim=qlim[i],))
         return links
+        # Collision_Cylinders = CylindricalDHRobotPlot(self, cylinder_radius=0.1, color=(1,1,1,1))
+        # IRB_4600_Collision = Collision_Cylinders.create_cylinders()
+
+        
+    
+        
 
     # ------------------------------
     def test(self):
@@ -109,14 +122,43 @@ class IRB_4600(DHRobot3D):
         self.add_to_env(env)
         env.set_camera_pose([2.5, -2.0, 1.5], [0, 0, 1.0])
 
-        q_goal = [self.q[i] - pi/8 for i in range(self.n)]
-        qtraj = rtb.jtraj(self.q, q_goal, 20).q
-        for q in qtraj:
+        q = self.q
+        T1 = self.fkine(q)@SE3.Rz(0)
+        x1 = T1.t
+
+
+        T2 = SE3(1,1, 0.495)@SE3.Rz(0)
+        x2 = T2.t
+
+        delta_t = 0.1
+        steps = 50
+
+        x = np.zeros([3,steps])
+        s = trapezoidal(0,1,steps).q
+        for i in range(steps):
+            x[:,i] = x1*(1-s[i]) + s[i]*x2
+        
+        q_matrix = np.zeros([steps, 6])
+
+        q_matrix[0,:] = self.ikine_LM(T1).q
+
+        for i in range(steps-1):                     # Calculate velocity at discrete time step
+            J = self.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
+            xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
+            xdot_angular = np.zeros(3)                      # keep orientation fixed
+            xdot_full = np.hstack((xdot_linear, xdot_angular))
+            #print(xdot_full)  # 6x1
+            q_dot = np.linalg.pinv(J) @ xdot_full
+            q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
+            
+        for q in q_matrix:
             self.q = q
-            fig = self.plot(self.q)
-            env.step(0.02)
-        time.sleep(2)
-        # env.hold()     
+
+            T = self.fkine(q)
+            print(T)
+            # print(q)
+            env.step(0.05)     # Update next joint state
+        env.hold()     
 
 
 

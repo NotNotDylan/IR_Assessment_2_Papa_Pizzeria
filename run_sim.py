@@ -110,9 +110,8 @@ class Run:
             
             
             # Small sleep to prevent excessive CPU usage
-            self.
-            self.world.pizza_timing(pause_1=5, pause_2=5)
-            self.world.sauce_placement()
+            # self.world.pizza_timing(pause_1=5, pause_2=5)
+            # self.world.sauce_placement()
 
             self.world.env.step(0.05)
 
