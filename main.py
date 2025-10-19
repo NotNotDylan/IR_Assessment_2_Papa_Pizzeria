@@ -10,6 +10,7 @@ from world import World
 
 from ir_support import DHRobot3D
 import numpy as np
+#testing
 
 
 def adapter(robot_model: DHRobot3D):
