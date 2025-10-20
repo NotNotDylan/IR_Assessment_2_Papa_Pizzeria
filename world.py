@@ -137,6 +137,10 @@ class World:
             self.env.add(Pillar_4)
             pillar4_collision = Cylinder(radius=0.2, length=1.0, base=SE3(6.52, 4.4, 0.5), color=(1,1,1,self.collision_opacity))
             self.env.add(pillar4_collision)
+
+            Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Toppings_Table2.stl"),
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
+            self.env.add(Toppings_Table)
             
             self.plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
