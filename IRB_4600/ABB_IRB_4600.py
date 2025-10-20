@@ -6,16 +6,18 @@ import swift
 import roboticstoolbox as rtb
 import spatialmath.base as spb
 from spatialmath import SE3
-from spatialgeometry import Arrow
+from spatialgeometry import Arrow, Cuboid, Cylinder
 import numpy as np
 from scipy import linalg
 
+
 from ir_support.robots.DHRobot3D import DHRobot3D
 from roboticstoolbox import DHLink, DHRobot, models, jtraj, trapezoidal
-from ir_support import CylindricalDHRobotPlot
+from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHRobotPlot
 
+from ir_support import EllipsoidRobot
+import trimesh
 
- 
     
 def deg2rad(degrees):
     """Convert degrees to radians."""
@@ -45,7 +47,7 @@ class IRB_4600(DHRobot3D):
             link3="Link_3",  
             link4="Link_4",   
             link5="Link_5",   
-            link6="Link_6",   
+            link6="Link_6_V2",
         )
 
         # A convenient "inspection" configuration to align meshes
@@ -73,6 +75,7 @@ class IRB_4600(DHRobot3D):
             qtest_transforms=qtest_transforms,
         )
 
+
         self.q = qtest
 
     # ------------------------------
@@ -98,28 +101,30 @@ class IRB_4600(DHRobot3D):
             [deg2rad(-400), deg2rad(+400)],        # A6 ±400
         ]
         
-        
-
         links = []
         for i in range(6):
-            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], offset=offset[i], qlim=qlim[i],))
+            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], offset=offset[i], qlim=qlim[i],))      
         return links
-        # Collision_Cylinders = CylindricalDHRobotPlot(self, cylinder_radius=0.1, color=(1,1,1,1))
-        # IRB_4600_Collision = Collision_Cylinders.create_cylinders()
-
-        
     
-        
-
+    def is_point_inside_mesh(self, mesh, point):
+        if mesh.contains([point]):
+            return True
+        else:
+            return False
+    
+    
     # ------------------------------
     def test(self):
         """
         Smoke-test: add to Swift, jog a bit, then pause.
         """
+        self._tool = None
         env = swift.Swift()
         env.launch(realtime=True)
 
         self.add_to_env(env)
+        
+
         env.set_camera_pose([2.5, -2.0, 1.5], [0, 0, 1.0])
 
         q = self.q
@@ -127,11 +132,28 @@ class IRB_4600(DHRobot3D):
         x1 = T1.t
 
 
-        T2 = SE3(1,1, 0.495)@SE3.Rz(0)
+        T2 = SE3(1,1,0.250)@SE3.Rz(0)
         x2 = T2.t
 
-        delta_t = 0.1
-        steps = 50
+        delta_t = 0.05
+        steps = 100
+        
+
+        box = trimesh.load(r'C:\Users\Aidan\Desktop\PyIR\Assignment 2\Collision_Test.stl')
+
+        inside = self.is_point_inside_mesh(box,[1, 1, 0.25])
+        print(inside)
+        print(box)
+        print("box:", box)
+        print("bounds:", box.bounds)           # min and max extents
+        print("centroid:", box.centroid)       # mesh centroid
+        print("is_watertight:", box.is_watertight)
+        print("face_normals valid:", box.face_normals.shape)
+
+
+
+        # prism = Cuboid(scale=(1,1,0.4), color=[0.0, 1.0, 0.0, 0.5],pose=SE3(1,1,0.2))
+        # env.add(prism)
 
         x = np.zeros([3,steps])
         s = trapezoidal(0,1,steps).q
@@ -151,17 +173,45 @@ class IRB_4600(DHRobot3D):
             q_dot = np.linalg.pinv(J) @ xdot_full
             q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
             
+        # for q in q_matrix:
+        #     self.q = q   
+        #     S = self.fkine_path(q)    
+        #     for i in range(len(S)):     
+        #         T = ((S[i]).t)
+        #         TT = [T[0],T[1],T[2]]
+                
+        #         print(TT)
+        #         TT = np.array(TT).reshape(1, 3)   # convert to np.array and reshape
+        #         inside = box.contains(TT)
+        #         print(inside)
+
+        points = []  # collect all FK positions
+
         for q in q_matrix:
             self.q = q
+            S = self.fkine_path(q)    
+            for T in S:     
+                point = T.t 
+                points.append(point)
+            env.step(0.05) 
 
-            T = self.fkine(q)
-            print(T)
-            # print(q)
-            env.step(0.05)     # Update next joint state
+        # Convert to NumPy array of shape (n,3)
+        points_array = np.array(points)
+        for i in range(len(points_array)):
+            print(points_array[i])
+
+        # Check which points are inside the box
+        inside_flags = box.contains(points_array)
+
+        print(inside_flags)
+
+        # Print results
+
+                
+
+            
+                # Update next joint state
         env.hold()     
-
-
-
 
 if __name__ == "__main__":    
     IRB_4600().test()

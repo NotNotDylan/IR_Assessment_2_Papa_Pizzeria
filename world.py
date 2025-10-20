@@ -17,6 +17,7 @@ import spatialmath.base as spb
 from spatialmath import SE3
 import numpy as np
 import threading
+from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHRobotPlot
 
 
 
@@ -231,6 +232,10 @@ class World:
 
         self.robot4.base = SE3(5.84, 6.49, 0.5)
         self.robot4.add_to_env(self.env)
+        
+        cyl_collision = CylindricalDHRobotPlot(self.robot3, cylinder_radius=0.05,color=(1,0,0,1))
+        self.collisions = cyl_collision.create_cylinders()
+        self.env.add(self.collisions)
         
         
         # TODO: Create conveyor belts and add to scene
