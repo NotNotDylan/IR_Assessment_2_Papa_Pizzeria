@@ -15,33 +15,32 @@ import time
 # TODO: Attach it to a robot
 # TODO: Make it specilised for my robot, that will alow me to neaten the whole thing up a heap and make the code way more practical
 
-class SimpleGripper(ObjectNode):
+class IRB_2400_Gripper(ObjectNode):
     def __init__(
         self,
         env,
         robot,
-        base_pose: SE3,
-        base_stl: str,
-        left_claw_stl: str,
-        right_claw_stl: str,
-        left_offset: SE3,
-        right_offset: SE3,
-        claw_rotation: SE3 = SE3.Rx(np.pi / 2),
-        default_open_dist: float = 0.05,
-        default_closed_dist: float = 0.03,
         name: Optional[str] = "GripperBase"
     ):
-        super().__init__(env, base_pose, base_stl, name=name)
-
+        
+        # locate assets relative to this file (the .stl files live in the same folder as this script)
+        base_dir = os.path.dirname(__file__)
+        base_stl = os.path.join(base_dir, "Gripper_basev2.stl")
+        left_claw_stl = os.path.join(base_dir, "Gripper_fingerv2.stl")
+        right_claw_stl = os.path.join(base_dir, "Gripper_fingerv2.stl")
+        
+        base_pose=SE3(0.0, 0.0, 0.0)
         self.robot = robot
         self.env = env
+        
+        super().__init__(env, base_pose, base_stl, name=name)
 
         # Store transform parameters
-        self.left_offset = left_offset
-        self.right_offset = right_offset
-        self.rotation = claw_rotation
-        self.open_dist = default_open_dist
-        self.closed_dist = default_closed_dist
+        self.left_offset = SE3.Tx(0.0)
+        self.right_offset = SE3.Ty(0.26)
+        self.rotation = SE3.Rx(0)
+        self.open_dist = 0.00
+        self.closed_dist = -0.02
 
         # Gripper claws as ObjectNodes
         self.left_claw = ObjectNode(env, base_pose, left_claw_stl, name="LeftClaw")
@@ -89,39 +88,10 @@ class SimpleGripper(ObjectNode):
     def is_open(self):
         return not self._is_closed
 
-
-if __name__ == "__main__":
-
-    env = swift.Swift()
-    env.launch()
-    # locate assets relative to this file (the .stl files live in the same folder as this script)
-    base_dir = os.path.dirname(__file__)
-    base_stl = os.path.join(base_dir, "Gripper_basev2.stl")
-    left_stl = os.path.join(base_dir, "Gripper_fingerv2.stl")
-    right_stl = os.path.join(base_dir, "Gripper_fingerv2.stl")
-    box_stl = os.path.join(base_dir, "Gripper_basev2.stl")
-
-    # warn if meshes are missing (example will still run but visuals may be absent)
-    for p in (base_stl, left_stl, right_stl, box_stl):
-        if not os.path.exists(p):
-            print(f"Warning: mesh not found: {p}")
-
-    # create the gripper (robot can be None for this demo)
-    gripper = SimpleGripper(
-        env=env,
-        robot=None,
-        base_pose=SE3(0.0, 0.0, 0.0),
-        base_stl=base_stl,
-        left_claw_stl=left_stl,
-        right_claw_stl=right_stl,
-        left_offset=SE3.Tx(0.0),
-        right_offset=SE3.Ty(0.26),
-        claw_rotation=SE3.Rx(0),
-        default_open_dist=0.00,
-        default_closed_dist=-0.02,
-        name="DemoGripper",
-    )
-
+def test():
+    # Just using a random stl as an object to move
+    box_stl = os.path.join(os.path.dirname(__file__), "Gripper_basev2.stl") 
+    
     # create a simple box to pick (if mesh exists)
     box = None
     if os.path.exists(box_stl):
@@ -165,4 +135,18 @@ if __name__ == "__main__":
     gripper.open()
     step(20)
 
-    print("Demo finished. Close the Swift window to exit.")
+    print("Demo finished.")
+
+if __name__ == "__main__":
+
+    env = swift.Swift()
+    env.launch()
+
+    # create the gripper (robot can be None for this demo)
+    gripper = IRB_2400_Gripper(
+        env=env,
+        robot=None,
+        name="DemoGripper",
+    )
+    
+    test(gripper)
