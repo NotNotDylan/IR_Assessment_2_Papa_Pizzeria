@@ -71,6 +71,7 @@ def main():
     # Start the main simulation loop (this will run until stopped)
     runner.run_loop()
     
+    
     # After loop ends (e.g., simulation stopped), hold the environment open
     # world.env.hold()  # Keep Swift window open (if needed for viewing after stop)
     

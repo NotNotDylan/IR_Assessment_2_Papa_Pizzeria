@@ -8,11 +8,15 @@ from world import World
 from states import State
 from states import SystemState as SS
 
+
 import time
 import threading
 import swift
 import roboticstoolbox as rtb
 from spatialmath import SE3
+from ir_support.robots.DHRobot3D import DHRobot3D
+
+
 # ... (other imports like numpy, logging, flask etc., as needed)
 
 class Run:
@@ -25,7 +29,8 @@ class Run:
         self.logger = logger
         self.motions = motions  # list of robot motion controller objects
         self.running = True
-        self.paused = False  # indicates if simulation is paused (e.g., after e-stop)
+        self.running = True
+        self.paused = False  # indicates if simulation is paused (e.g., after e-stop) # Initialize simulation time
         
         # Creating only one instance of the robot movment and calcuation objects
         # self.robot_test_motion = MovementCalculation(self.world.robot_test)
