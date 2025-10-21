@@ -4,6 +4,9 @@ from manipulatable_object import Topping
 import numpy as np
 from spatialmath import SE3
 import roboticstoolbox as rtb
+from roboticstoolbox import trapezoidal, DHRobot
+from scipy import linalg
+from numpy import pi
 
 class MovementCalculation:
     """Base class for robot movement calculations: kinematics, path planning, and safety checks."""
@@ -62,8 +65,78 @@ class MovementCalculation:
         """Placeholder update method to be overridden by subclasses. Computes next motion based on system state."""
         pass  # To be implemented in each subclass
 
-    def find_max_mins():
-        meshes = np.zeros([9,6])
+    def collision_detected(self, point, array=None):
+        for i in array:
+            if array[i][0] <= point[0] <= array[i][1]:
+                if array[i][2] <= point[1] <= array[i][3]:
+                    if array[i][4] <= point[2] <= array[i][5]:
+                        return True
+                    
+    def RMRC(self, next_pos):
+        self._tool = None
+        
+        q = self.robot.q
+        T1 = self.robot.fkine(q)
+        x1 = T1.t
+
+        T2 = next_pos
+        x2 = T2.t
+
+        roll, pitch, yaw = next_pos.rpy(unit="rad", order="zyx")
+
+        delta_t = 0.05
+        steps = 100
+
+        x = np.zeros([3,steps])
+        s = trapezoidal(0,1,steps).q
+
+        for tryes in range(steps):
+            x[:,i] = x1*(1-s[i]) + s[i]*x2
+
+        for i in range(20):
+            q_matrix = np.zeros([steps, 6])
+
+            q_matrix[0,:] = self.robot.ikine_LM(T1).q
+
+            # Finds path of robot movment (as joint positions)
+            for i in range(steps-1):                     # Calculate velocity at discrete time step
+                J = self.robot.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
+                xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
+                xdot_angular = np.array(roll/(steps*delta_t), pitch/(steps*delta_t), yaw/(steps*delta_t))                # keep orientation fixed
+                xdot_full = np.hstack((xdot_linear, xdot_angular))
+                q_dot = np.linalg.pinv(J) @ xdot_full
+                q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
+
+            points = []  # collect all FK positions
+
+            # Find's each joint position in the arm relative to world
+            for q in q_matrix:
+                S = self.robot.fkine_path(q)   
+                for T in S:     
+                    point = T.t
+                    points.append(point)
+
+            # Checks all joint positioins to see if they are within a colision box/bound
+            for i in range(len(points)):
+                if self.collision_detected(point=points[i]) == False:
+                    break
+
+            if tryes == 19:
+                print("RMRC failed to find trajectory in 20 tries")
+        
+        for q in q_matrix:
+            self.q = q
+            
+
+
+                
+
+
+            
+
+
+
+
 
 
 class Robot1Movement(MovementCalculation):
