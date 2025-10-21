@@ -128,11 +128,11 @@ class IRB_4600(DHRobot3D):
         env.set_camera_pose([2.5, -2.0, 1.5], [0, 0, 1.0])
 
         q = self.q
-        T1 = self.fkine(q)@SE3.Rz(0)
+        T1 = self.fkine(q)
         x1 = T1.t
 
 
-        T2 = SE3(1,1,0.250)@SE3.Rz(0)
+        T2 = SE3(1,1,0.250)
         x2 = T2.t
 
         delta_t = 0.05
@@ -164,26 +164,17 @@ class IRB_4600(DHRobot3D):
 
         q_matrix[0,:] = self.ikine_LM(T1).q
 
+        Thing = SE3(3,5,6) @ SE3.Rx(pi/2) @ SE3.Ry(0) @ SE3.Rz(0)
+        roll, pitch, yaw = Thing.rpy(unit="rad", order="zyx")
+
         for i in range(steps-1):                     # Calculate velocity at discrete time step
             J = self.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
             xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
-            xdot_angular = np.zeros(3)                      # keep orientation fixed
+            xdot_angular = np.array([roll/(steps*delta_t), pitch/(steps*delta_t), yaw/(steps*delta_t)])                # keep orientation fixed (pi)/(steps*delta_t)
             xdot_full = np.hstack((xdot_linear, xdot_angular))
             #print(xdot_full)  # 6x1
             q_dot = np.linalg.pinv(J) @ xdot_full
             q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
-            
-        # for q in q_matrix:
-        #     self.q = q   
-        #     S = self.fkine_path(q)    
-        #     for i in range(len(S)):     
-        #         T = ((S[i]).t)
-        #         TT = [T[0],T[1],T[2]]
-                
-        #         print(TT)
-        #         TT = np.array(TT).reshape(1, 3)   # convert to np.array and reshape
-        #         inside = box.contains(TT)
-        #         print(inside)
 
         points = []  # collect all FK positions
 
@@ -191,19 +182,21 @@ class IRB_4600(DHRobot3D):
             self.q = q
             S = self.fkine_path(q)    
             for T in S:     
-                point = T.t 
+                point = T.t
                 points.append(point)
             env.step(0.05) 
 
         # Convert to NumPy array of shape (n,3)
         points_array = np.array(points)
         for i in range(len(points_array)):
-            print(points_array[i])
+            if -2 <= points_array[i][0] <= 2:
+                if -2 <= points_array[i][1] <= 2:
+                    if 0 <= points_array[i][2] <= 5:
+                        print("COLLISION at", points_array[i])
+
 
         # Check which points are inside the box
-        inside_flags = box.contains(points_array)
-
-        print(inside_flags)
+        
 
         # Print results
 
