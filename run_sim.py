@@ -7,6 +7,7 @@ from states import State
 from world import World
 from states import State
 from states import SystemState as SS
+from states import PizzaStage  as PS
 
 
 import time
@@ -164,6 +165,18 @@ class Run:
         self.OPERATION = State(SS.READY) 
         self.OPERATION_Counter = 0
         
+        # Stages of operation
+        self.pizza_stage = PS.FIRST_MOVE
+        
+        # Object State
+        self.robot1_state        = State(SS.DEACTIVE)
+        self.robot2_state        = State(SS.DEACTIVE)
+        self.robot3_state        = State(SS.DEACTIVE)
+        self.robot4_state        = State(SS.DEACTIVE)
+        self.motorcycle_state    = State(SS.DEACTIVE)
+        self.conveyerbelt_state  = State(SS.DEACTIVE)
+        self.light_curtain_state = State(SS.DEACTIVE)
+        
         # gui buttons
         self.E_Stop = State(SS.DEACTIVE)
         self.Reset = State(SS.DEACTIVE)
@@ -181,6 +194,7 @@ class Run:
         if self.OPERATION.is_ready() and self.Start.is_active():
             self.OPERATION.set_state(SS.RUNNING)
             self.Start.set_state(SS.DEACTIVE) 
+            self.handle_pizza_stage()
         elif self.OPERATION.is_achieved():
             self.OPERATION.set_state(SS.READY)
             self.OPERATION_Counter = 0
@@ -194,7 +208,36 @@ class Run:
             self.OPERATION.set_state(SS.SUSPENDED)
             
         self.Start.set_state(SS.DEACTIVE)
-        
+
+    def handle_pizza_stage(self):
+        """Handles which operations are occuring at the time"""
+        match self.pizza_stage:
+            case PS.FIRST_MOVE:
+                self.pizza_stage_clock_helper(self.conveyerbelt_state, PS.ROBOT_1    , 15)
+            case PS.ROBOT_1:
+                self.pizza_stage_clock_helper(self.robot1_state      , PS.SECOND_MOVE, 80)
+            case PS.SECOND_MOVE: 
+                self.pizza_stage_clock_helper(self.conveyerbelt_state, PS.ROBOT_2    , 30)
+            case PS.ROBOT_2: 
+                self.pizza_stage_clock_helper(self.robot2_state      , PS.THIRD_MOVE , 80)
+            case PS.THIRD_MOVE: 
+                self.pizza_stage_clock_helper(self.conveyerbelt_state, PS.ROBOT_3    , 30)
+            case PS.ROBOT_3: 
+                self.pizza_stage_clock_helper(self.robot3_state      , PS.ROBOT_4    , 80)
+            case PS.ROBOT_4: 
+                self.pizza_stage_clock_helper(self.robot4_state      , PS.MOTORCYCLE , 80)
+            case PS.MOTORCYCLE: 
+                self.pizza_stage_clock_helper(self.motorcycle_state  , PS.COMPLETED  , 50)
+            case PS.COMPLETED:
+                pass
+    
+    def pizza_stage_clock_helper(self, operation: State, next_stage: PS, counter: int):
+        operation.set_state(SS.ACTIVE)
+        self.OPERATION_Counter += 1
+        if self.OPERATION_Counter == counter:  # Operation will take this many steps
+            operation.set_state(SS.DEACTIVE)
+            self.OPERATION_Counter = 0
+            self.pizza_stage = next_stage
             
     def handle_actions(self, inputs: dict):
         if self.OPERATION.is_running():

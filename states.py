@@ -13,6 +13,17 @@ class SystemState(Enum):
     # For inputs
     ACTIVE = auto()     # e.g. button pressed, sensor tripped
     DEACTIVE = auto()   # e.g. not pressed, not tripped
+    
+class PizzaStage(Enum):
+    FIRST_MOVE  = auto()  # Comes out of the spauner
+    ROBOT_1     = auto()  # Robot applies sauce
+    SECOND_MOVE = auto()  # Conveyer moves it to next robot
+    ROBOT_2     = auto()  # Robot adds toppings
+    THIRD_MOVE  = auto()  # Conveyer moves it into position for the robot to pick it up
+    ROBOT_3     = auto()  # Puts in oven wait then in box
+    ROBOT_4     = auto()  # Put's box on motorbike
+    MOTORCYCLE  = auto()  # Motorbike drives away
+    COMPLETED   = auto()  # Done
 
 class State:
     """
