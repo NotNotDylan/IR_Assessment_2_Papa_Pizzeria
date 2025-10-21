@@ -254,7 +254,7 @@ class World:
         """Load robots, conveyors, and objects into the environment."""
         
         # self.env.add(self.robot_test)
-        self.robot1.base = SE3(4.6,4.05,1.0)
+        self.robot1.base = SE3(4.6,4.05,1.0) @ SE3.Rz(pi)
         self.robot1.add_to_env(self.env)
 
         self.robot2.base = SE3(6.52,4.4,1.0)
