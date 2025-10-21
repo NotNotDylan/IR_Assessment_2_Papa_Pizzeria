@@ -254,7 +254,7 @@ class Run:
             case PS.SECOND_MOVE: 
                 self.pizza_stage_clock_helper(PS.ROBOT_2    , 95)
             case PS.ROBOT_2: 
-                self.pizza_stage_clock_helper(PS.THIRD_MOVE , 300)
+                self.pizza_stage_clock_helper(PS.THIRD_MOVE , 290)
             case PS.THIRD_MOVE: 
                 self.pizza_stage_clock_helper(PS.ROBOT_3    , 115)
             case PS.ROBOT_3: 
