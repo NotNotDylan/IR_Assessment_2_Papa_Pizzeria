@@ -28,9 +28,21 @@ class MovementCalculation:
             [6.0, 7.0, 3.875, 4.125, 0.0, 1.0]
         ])
         
-    def get_ObjectNode(self, object: ObjectNode):
-        """Only stores the most recently called one"""
-        self.object = object
+    def get_ObjectNode(self, 
+                       pizza:     ObjectNode = None,
+                       cheese:    ObjectNode = None,
+                       olives:    ObjectNode = None,
+                       ham:       ObjectNode = None,
+                       pepperoni: ObjectNode = None,
+                       pineapple: ObjectNode = None
+        ):
+        """Grabs the Object node so it can be manipulated with here"""
+        self.pizza     = pizza
+        self.cheese    = cheese   
+        self.olives    = olives   
+        self.ham       = ham      
+        self.pepperoni = pepperoni
+        self.pineapple = pineapple
     
     def forward_kinematics(self, q=None):
         """Return the end-effector pose (SE3) for given joint angles q. If q not provided, uses robot's current q."""
@@ -139,16 +151,15 @@ class Robot1Movement(MovementCalculation):
     """Controls Robot 1 (Sauce application robot) movements and task execution."""
     def __init__(self, robot_model):
         super().__init__(robot_model)
-        self.sauce_applied = False  # flag to indicate if sauce task done for current pizza
     
     def calculate(self):
         """
         Zero position
-        Circle above pizza (Three points untill RMRC)
+        Circle above pizza
         Zero position
         """
         
-        pizza_cord = self.object.xyz_of_node()
+        pizza_cord = self.pizza.xyz_of_node()
         
         # Old method
         # Joint anges at each step
@@ -190,7 +201,6 @@ class Robot2Movement(MovementCalculation):
     """Controls Robot 2 (Topping placement robot) movements and task execution."""
     def __init__(self, robot_model):
         super().__init__(robot_model)
-        self.toppings_placed = False  # or count of toppings placed
     
     def calculate(self):
         """
@@ -200,13 +210,51 @@ class Robot2Movement(MovementCalculation):
         pick place topping
         Zero position
         """
-        pass
+        # Getting initial cordanates
+        pizza_cord     = self.pizza.xyz_of_node()
+        cheese_cord    = self.cheese.xyz_of_node()
+        olives_cord    = self.olives.xyz_of_node()
+        ham_cord       = self.ham.xyz_of_node()
+        pepperoni_cord = self.pepperoni.xyz_of_node()
+        pineapple_cord = self.pineapple.xyz_of_node()
+        
+        
+        # Joint anges at each step
+        q_step1  = self.robot.q  # initial configuration
+        q_step2  = self.inverse_kinematics(SE3(olives_cord[0]    + 0.00, olives_cord[1]    + 0.00, olives_cord[2]    + 0.02 ) @ SE3.Ry(np.pi), q_step1) 
+        q_step3  = self.inverse_kinematics(SE3(pizza_cord[0]     + 0.00, pizza_cord[1]     + 0.00, pizza_cord[2]     + 0.015) @ SE3.Ry(np.pi), q_step2) 
+        q_step4  = self.inverse_kinematics(SE3(ham_cord[0]       + 0.00, ham_cord[1]       + 0.00, ham_cord[2]       + 0.02 ) @ SE3.Ry(np.pi), q_step3) 
+        q_step5  = self.inverse_kinematics(SE3(pizza_cord[0]     + 0.00, pizza_cord[1]     + 0.00, pizza_cord[2]     + 0.00 ) @ SE3.Ry(np.pi), q_step4)
+        q_step6  = self.inverse_kinematics(SE3(pepperoni_cord[0] + 0.00, pepperoni_cord[1] + 0.00, pepperoni_cord[2] + 0.02 ) @ SE3.Ry(np.pi), q_step5) 
+        q_step7  = q_step5
+        q_step8  = self.inverse_kinematics(SE3(pineapple_cord[0] + 0.00, pineapple_cord[1] + 0.00, pineapple_cord[2] + 0.015) @ SE3.Ry(np.pi), q_step5) 
+        q_step9  = q_step5
+        q_step10 = self.inverse_kinematics(SE3(cheese_cord[0]    + 0.00, cheese_cord[1]    + 0.00, cheese_cord[2]    + 0.016) @ SE3.Ry(np.pi), q_step5) 
+        q_step11 = q_step5
+        q_step12 = q_step1
+        
+        # Calculate trajectories
+        q_traj1  = rtb.jtraj(q_step1,  q_step2,  60).q
+        q_traj2  = rtb.jtraj(q_step2,  q_step3,  20).q
+        q_traj3  = rtb.jtraj(q_step3,  q_step4,  20).q
+        q_traj4  = rtb.jtraj(q_step4,  q_step5,  20).q
+        q_traj5  = rtb.jtraj(q_step5,  q_step6,  20).q
+        q_traj6  = rtb.jtraj(q_step6,  q_step7,  20).q
+        q_traj7  = rtb.jtraj(q_step7,  q_step8,  20).q
+        q_traj8  = rtb.jtraj(q_step8,  q_step9,  20).q
+        q_traj9  = rtb.jtraj(q_step9,  q_step10, 20).q
+        q_traj10 = rtb.jtraj(q_step10, q_step11, 20).q
+        q_traj11 = rtb.jtraj(q_step11, q_step12, 60).q
+        
+        # Join togther trajectories
+        q_traj_final = np.concatenate([q_traj1, q_traj2, q_traj3, q_traj4, q_traj5, q_traj6, q_traj7, q_traj8, q_traj9, q_traj10, q_traj11], axis=0)
+        
+        return q_traj_final # (60*2)+(20*9) = 300 steps
 
 class Robot3Movement(MovementCalculation):
     """Controls Robot 3 (Oven handling robot) movements and task execution."""
     def __init__(self, robot_model):
         super().__init__(robot_model)
-        self.pizza_in_oven = False
     
     def calculate(self):
         """
@@ -222,7 +270,6 @@ class Robot4Movement(MovementCalculation):
     """Controls Robot 4 (Packaging and loading robot) movements and task execution."""
     def __init__(self, robot_model):
         super().__init__(robot_model)
-        self.box_ready = False
     
     def calculate(self):
         """

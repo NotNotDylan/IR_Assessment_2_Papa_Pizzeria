@@ -80,11 +80,11 @@ class Run:
         self.pizza = ObjectNode(self.world.env, SE3(3.5, 3.6, 1.015), "Pizza's/Pizza_Base.stl", color=(0.90, 0.83, 0.70), name="Pizza")
         
         # Make the toppings
-        self.cheese    = ObjectNode(self.world.env, SE3(6.5, 4, 1.004), "Pizza's/Pizza_Cheese.stl", color=(1.0, 0.78, 0.24) , name="cheese")
+        self.cheese    = ObjectNode(self.world.env, SE3(6.5, 4, 1.004), "Pizza's/Pizza_Cheese.stl", color=(1.00, 0.78, 0.24), name="cheese")
         self.olives    = ObjectNode(self.world.env, SE3(6.2, 4, 1.01 ), "Pizza's/Olives.stl"      , color=(0.20, 0.20, 0.20), name="olives")
-        self.ham       = ObjectNode(self.world.env, SE3(5.9, 4, 1    ), "Pizza's/Ham.stl"         , color=(1.0, 0.71, 0.76) , name="ham")
+        self.ham       = ObjectNode(self.world.env, SE3(5.9, 4, 1    ), "Pizza's/Ham.stl"         , color=(1.00, 0.71, 0.76), name="ham")
         self.pepperoni = ObjectNode(self.world.env, SE3(6.8, 4, 1    ), "Pizza's/Pepperoni.stl"   , color=(0.71, 0.20, 0.14), name="pepperoni")
-        self.pineapple = ObjectNode(self.world.env, SE3(7.1, 4, 1.005), "Pizza's/Pineapple.stl"   , color=(1.0, 0.90, 0.39) , name="pineapple")
+        self.pineapple = ObjectNode(self.world.env, SE3(7.1, 4, 1.005), "Pizza's/Pineapple.stl"   , color=(1.00, 0.90, 0.39), name="pineapple")
         
         # Adding to the world
         self.pizza.add_to_world()
@@ -102,13 +102,22 @@ class Run:
         if self.last_stage != self.pizza_stage:
             match self.pizza_stage:
                 case PS.ROBOT_1:
-                    self.robot1_motion.get_ObjectNode(self.pizza)
+                    self.robot1_motion.get_ObjectNode(pizza=self.pizza)
                     self.joint_dict["Robot 1 Movment"] = self.robot1_motion.calculate()
                 case PS.ROBOT_2:
+                    self.robot2_motion.get_ObjectNode(pizza     = self.pizza,
+                                                      cheese    = self.cheese,
+                                                      olives    = self.olives,   
+                                                      ham       = self.ham,      
+                                                      pepperoni = self.pepperoni,
+                                                      pineapple = self.pineapple,
+                    )
                     self.joint_dict["Robot 2 Movment"] = self.robot2_motion.calculate()
                 case PS.ROBOT_3:
+                    self.robot3_motion.get_ObjectNode(pizza=self.pizza)
                     self.joint_dict["Robot 3 Movment"] = self.robot3_motion.calculate()
                 case PS.ROBOT_4:
+                    self.robot4_motion.get_ObjectNode(pizza=self.pizza)
                     self.joint_dict["Robot 4 Movment"] = self.robot4_motion.calculate()
                     
         self.last_stage = self.pizza_stage
@@ -243,11 +252,11 @@ class Run:
             case PS.ROBOT_1:
                 self.pizza_stage_clock_helper(PS.SECOND_MOVE, 200)
             case PS.SECOND_MOVE: 
-                self.pizza_stage_clock_helper(PS.ROBOT_2    , 30)
+                self.pizza_stage_clock_helper(PS.ROBOT_2    , 95)
             case PS.ROBOT_2: 
-                self.pizza_stage_clock_helper(PS.THIRD_MOVE , 80)
+                self.pizza_stage_clock_helper(PS.THIRD_MOVE , 300)
             case PS.THIRD_MOVE: 
-                self.pizza_stage_clock_helper(PS.ROBOT_3    , 30)
+                self.pizza_stage_clock_helper(PS.ROBOT_3    , 115)
             case PS.ROBOT_3: 
                 self.pizza_stage_clock_helper(PS.ROBOT_4    , 80)
             case PS.ROBOT_4: 

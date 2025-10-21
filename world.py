@@ -167,9 +167,9 @@ class World:
                               color=(0.698, 0.133, 0.133))
             self.env.add(self.sauce)
 
-            self.cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese.stl"),
-                               pose = SE3(self.xp, self.yp, 1.0125),
-                               color=(1.0, 0.78, 0.24))
+            # self.cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese.stl"),
+            #                    pose = SE3(self.xp, self.yp, 1.0125),
+            #                    color=(1.0, 0.78, 0.24))
             
             self.cheese_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese_Pile.stl"), 
                                     pose = SE3(6.5,4,1.004),
@@ -177,10 +177,10 @@ class World:
             self.env.add(self.cheese_pile)
 
 
-            self.olives = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives.stl"), 
-                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2) +0.0125), 
-                              color=(0.20, 0.20, 0.20))
+            # self.olives = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives.stl"), 
+            #                   #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+            #                   pose = SE3(self.xp, self.yp, (0.475905*2) +0.0125), 
+            #                   color=(0.20, 0.20, 0.20))
             
             self.olive_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives_Pile.stl"), 
                                     pose = SE3(6.2,4,1),
@@ -188,20 +188,20 @@ class World:
             self.env.add(self.olive_pile)
             
 
-            self.ham = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Ham.stl"), 
-                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
-                              color=(1.0, 0.71, 0.76))
+            # self.ham = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Ham.stl"), 
+            #                   #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+            #                   pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+            #                   color=(1.0, 0.71, 0.76))
             self.ham_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni_Pileblend.stl"), 
                                     pose = SE3(5.9,4,1),
                                     color=(1.0, 0.71, 0.76))
             self.env.add(self.ham_pile)
             
 
-            self.pepperoni = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni.stl"), 
-                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
-                              color=(0.71, 0.20, 0.14))
+            # self.pepperoni = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni.stl"), 
+            #                   #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+            #                   pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+            #                   color=(0.71, 0.20, 0.14))
             self.pepperoni_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni_Pileblend.stl"), 
                                     pose = SE3(6.8,4,1),
                                     color=(0.71, 0.20, 0.14))
@@ -209,10 +209,10 @@ class World:
             
             
 
-            self.pineapple = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple.stl"), 
-                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
-                              color=(1.0, 0.90, 0.39))
+            # self.pineapple = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple.stl"), 
+            #                   #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+            #                   pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+            #                   color=(1.0, 0.90, 0.39))
             self.pineapple_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple_Pizza.stl"), 
                                     pose = SE3(7.1,4,1.005),
                                     color=(1.0, 0.90, 0.39))
