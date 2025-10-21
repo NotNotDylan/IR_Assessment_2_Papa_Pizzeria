@@ -267,6 +267,12 @@ class Run:
             # Assigning the precalculated joint angles to each of the robots
             if self.pizza_stage == PS.ROBOT_1:
                 self.world.robot1.q = self.joint_dict.get("Robot 1 Movment")[self.OPERATION_Counter]
+                # Materilise sauce
+                if self.OPERATION_Counter == 130:
+                    self.sauce = ObjectNode(self.world.env, SE3(0.0, 0.0, 0.0), "Pizza's/Pizza_Sauce.stl", color=(0.698, 0.133, 0.133), name="Sauce")
+                    self.sauce.attach_to(self.pizza, keep_world_pose=False)
+                    self.sauce.set_local_to_parent(SE3(0, 0, 0.0075))
+                    self.sauce.add_to_world()
             elif self.pizza_stage == PS.ROBOT_2:
                 self.world.robot2.q = self.joint_dict.get("Robot 2 Movment")[self.OPERATION_Counter]
             elif self.pizza_stage == PS.ROBOT_3:
@@ -284,6 +290,7 @@ class Run:
             
             elif self.pizza_stage == PS.COMPLETED:
                 pass
+            
             
         
         
