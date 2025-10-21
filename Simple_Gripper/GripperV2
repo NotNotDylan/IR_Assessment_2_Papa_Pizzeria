@@ -1,0 +1,170 @@
+from spatialmath import SE3
+from spatialgeometry import Mesh
+import os, sys, time
+import numpy as np
+from typing import Optional
+from pathlib import Path
+
+# ---- Swift-style setup (same as Aubo I5) ----
+SCRIPT_DIR = Path(__file__).parent.resolve()
+SWIFT_ROOT = Path(SCRIPT_DIR.drive + "/").resolve()
+os.chdir(SWIFT_ROOT)
+
+import swift
+from manipulatable_object import ObjectNode
+
+def swift_prefix_from_windows_path(p: Path) -> str:
+    """Turn 'C:/foo/bar' into 'foo/bar/' for Swift /retrieve/."""
+    s = p.as_posix()
+    if ":" in s:
+        s = s.split(":", 1)[1]     # strip drive like 'C:'
+    s = s.lstrip("/")              # no leading slash
+    return s + ("/" if not s.endswith("/") else "")
+
+# TODO: Attach it to a robot
+# TODO: Make it specialised for my robot, that will allow me to neaten the whole thing up a heap and make the code way more practical
+
+class IRB_2400_Gripper(ObjectNode):
+    def __init__(
+        self,
+        env,
+        robot,
+        name: Optional[str] = "GripperBase"
+    ):
+        self.grasp_local = SE3.Tx(0.13) * SE3.Tz(0.002)
+        # STLs sit next to this file; build Swift-friendly paths using the helper
+        assets_dir_rel = swift_prefix_from_windows_path(SCRIPT_DIR)
+        base_stl       = assets_dir_rel + "Gripper_basev2.stl"
+        left_claw_stl  = assets_dir_rel + "Gripper_fingerv2.stl"
+        right_claw_stl = assets_dir_rel + "Gripper_fingerv2.stl"
+
+        base_pose = SE3(0.0, 0.0, 0.0)
+        self.robot = robot
+        self.env = env
+
+        super().__init__(env, base_pose, base_stl, name=name)
+
+        # Store transform parameters (unchanged)
+        self.left_offset  = SE3.Tx(0.0)
+        self.right_offset = SE3.Ty(0.26)
+        self.rotation     = SE3.Rx(0)
+        self.open_dist    = 0.00
+        self.closed_dist  = -0.02
+
+        # Gripper claws as ObjectNodes (unchanged)
+        self.left_claw  = ObjectNode(env, base_pose, left_claw_stl,  name="LeftClaw")
+        self.right_claw = ObjectNode(env, base_pose, right_claw_stl, name="RightClaw")
+
+        self.left_claw.attach_to(self)
+        self.right_claw.attach_to(self)
+
+        self.left_claw.add_to_world()
+        self.right_claw.add_to_world()
+        self.add_to_world()
+
+        self._is_closed = False
+        self.gripped_object = None
+
+        self.update_claws(self.open_dist)
+
+    def update_claws(self, width: float):
+        """Update claw offsets based on desired width."""
+        left_pose  = SE3.Ty(-width) * self.left_offset * self.rotation
+        right_pose = SE3.Ty( width) * self.right_offset * self.rotation
+
+        self.left_claw.set_local_to_parent(left_pose)
+        self.right_claw.set_local_to_parent(right_pose)
+
+    def close(self, obj: Optional[ObjectNode] = None):
+        self.update_claws(self.closed_dist)
+        self._is_closed = True
+
+        if obj is not None:
+            obj.attach_to(self)
+            obj.set_local_to_parent(self.grasp_local)
+            obj.add_to_world()
+            self.gripped_object = obj
+
+    def open(self):
+        self.update_claws(self.open_dist)
+        self._is_closed = False
+
+        if self.gripped_object is not None:
+            self.gripped_object.detach()
+            self.gripped_object = None
+
+    def is_closed(self):
+        return self._is_closed
+
+    def is_open(self):
+        return not self._is_closed
+
+def test():
+    env = globals().get("env")
+    gripper = globals().get("gripper")
+
+    # Use same directory-next-to-file assumption for the demo box
+    assets_dir_rel = swift_prefix_from_windows_path(SCRIPT_DIR)
+    box_stl = assets_dir_rel + "Gripper_basev2.stl"
+
+    # create a simple box to pick (if mesh exists)
+    box = None
+    if (SCRIPT_DIR / "Gripper_basev2.stl").exists():
+        box = ObjectNode(env, SE3(0.3, 0.0, 0.02), box_stl, name="Box")
+        box.add_to_world()
+    else:
+        print("Box mesh missing: skipping attach-demo. Gripper demo will still show movement.")
+
+    # Helper to step the simulator with a small pause for visualization
+    def step(n=1, dt=0.05):
+        for _ in range(n):
+            env.step(dt)
+            time.sleep(0.01)
+
+    # Start with gripper open and visually centered above the box
+    gripper.open()
+    step(10)
+
+    # Approach: lower gripper in small increments
+    for _ in range(40):
+        gripper.move_by(SE3.Tz(-0.002))  # move down by 2 mm
+        step(1)
+
+    # If we have a box, align it under the jaws and close to attach
+    if box is not None:
+        gripper.close(obj=box)
+    else:
+        gripper.close()
+
+    step(25)
+
+    # Lift the object up
+    for _ in range(50):
+        gripper.move_by(SE3.Tz(0.002))  # move up by 2 mm
+        step(1)
+    for _ in range(50):
+        gripper.move_by(SE3.Tx(0.002))
+        step(1)
+    step(10)
+
+    # Release the object
+    gripper.open()
+    for _ in range(50):
+       gripper.move_by(SE3.Tx(-0.0022))
+       step(1)
+    step(20)
+
+    print("Demo finished.")
+
+if __name__ == "__main__":
+    env = swift.Swift()
+    env.launch()
+
+    # create the gripper (robot can be None for this demo)
+    gripper = IRB_2400_Gripper(
+        env=env,
+        robot=None,
+        name="DemoGripper",
+    )
+
+    test()  # keeps your original test() signature

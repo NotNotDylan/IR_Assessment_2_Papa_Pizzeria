@@ -1,4 +1,4 @@
-from manipulatable_object import PizzaParts
+from Simple_Gripper.manipulatable_object import PizzaParts
 
 import swift
 import roboticstoolbox as rtb

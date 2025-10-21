@@ -1,4 +1,4 @@
-from manipulatable_object import PizzaParts
+from Simple_Gripper.manipulatable_object import PizzaParts
 
 import numpy as np
 from spatialmath import SE3

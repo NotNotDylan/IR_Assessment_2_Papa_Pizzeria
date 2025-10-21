@@ -1,7 +1,7 @@
 from external_e_stop import ExternalEStop
 from imgui_GUI import GUIImGui
 from logger import Logger
-import manipulatable_object
+import Simple_Gripper.manipulatable_object as manipulatable_object
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement
 from run_sim import Run
 from states import State
