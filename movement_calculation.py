@@ -68,13 +68,31 @@ class Robot1Movement(MovementCalculation):
         super().__init__(robot_model)
         self.sauce_applied = False  # flag to indicate if sauce task done for current pizza
     
-    def run(self, state):
+    def run(self):
         """
         Zero position
-        Circle above pizza (Four points untill RMRC)
+        Circle above pizza (Three points untill RMRC)
         Zero position
         """
-        pass
+        # Joint anges at each step
+        q_step1 = self.robot.q  # initial configuration
+        q_step2 = self.inverse_kinematics(None, q_step1) #TODO: Replace 'None' with SE3 target
+        q_step3 = self.inverse_kinematics(None, q_step2)
+        q_step4 = self.inverse_kinematics(None, q_step3)
+        q_step5 = self.inverse_kinematics(None, q_step4)
+        q_step6 = q_step1
+        
+        # Calculate trajectories
+        q_traj1 = rtb.jtraj(q_step1, q_step2, 70).q
+        q_traj2 = rtb.jtraj(q_step2, q_step3, 30).q
+        q_traj3 = rtb.jtraj(q_step3, q_step4, 30).q
+        q_traj4 = rtb.jtraj(q_step4, q_step5, 30).q
+        q_traj5 = rtb.jtraj(q_step5, q_step6, 70).q
+        
+        # Join togther trajectories
+        q_traj_final =  np.concatenate(q_traj1, q_traj2, q_traj3, q_traj4, q_traj5)
+        
+        return q_traj_final
 
 class Robot2Movement(MovementCalculation):
     """Controls Robot 2 (Topping placement robot) movements and task execution."""
@@ -82,7 +100,7 @@ class Robot2Movement(MovementCalculation):
         super().__init__(robot_model)
         self.toppings_placed = False  # or count of toppings placed
     
-    def run(self, state):
+    def run(self):
         """
         Zero position
         pick place topping
@@ -98,7 +116,7 @@ class Robot3Movement(MovementCalculation):
         super().__init__(robot_model)
         self.pizza_in_oven = False
     
-    def run(self, state):
+    def run(self):
         """
         pick up pizza
         place in oven
@@ -114,7 +132,7 @@ class Robot4Movement(MovementCalculation):
         super().__init__(robot_model)
         self.box_ready = False
     
-    def run(self, state):
+    def run(self):
         """
         pick up pizza box
         place on motorcycle
