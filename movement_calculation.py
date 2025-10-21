@@ -68,7 +68,7 @@ class Robot1Movement(MovementCalculation):
         super().__init__(robot_model)
         self.sauce_applied = False  # flag to indicate if sauce task done for current pizza
     
-    def run(self):
+    def calculate(self):
         """
         Zero position
         Circle above pizza (Three points untill RMRC)
@@ -76,9 +76,9 @@ class Robot1Movement(MovementCalculation):
         """
         # Joint anges at each step
         q_step1 = self.robot.q  # initial configuration
-        q_step2 = self.inverse_kinematics(None, q_step1)  # Three points of a triangle (circle)
-        q_step3 = self.inverse_kinematics(None, q_step2)  #TODO: Replace 'None' with SE3 target
-        q_step4 = self.inverse_kinematics(None, q_step3)
+        q_step2 = self.inverse_kinematics(SE3(4.6 + 0.00, 3.6 + 0.12, 1.015) @ SE3.Ry(np.pi), q_step1)  # Three points of a triangle (circle)
+        q_step3 = self.inverse_kinematics(SE3(4.6 - 0.10, 3.6 - 0.06, 1.015) @ SE3.Ry(np.pi), q_step2)
+        q_step4 = self.inverse_kinematics(SE3(4.6 + 0.10, 3.6 - 0.06, 1.015) @ SE3.Ry(np.pi), q_step3)
         q_step5 = q_step2 # This step completes the circle
         q_step6 = q_step1
         
@@ -90,7 +90,7 @@ class Robot1Movement(MovementCalculation):
         q_traj5 = rtb.jtraj(q_step5, q_step6, 70).q
         
         # Join togther trajectories
-        q_traj_final = np.concatenate(q_traj1, q_traj2, q_traj3, q_traj4, q_traj5)
+        q_traj_final = np.concatenate([q_traj1, q_traj2, q_traj3, q_traj4, q_traj5], axis=0)
         
         return q_traj_final # 70+30+30+30+70 = 230 steps
 

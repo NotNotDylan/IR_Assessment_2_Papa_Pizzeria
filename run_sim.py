@@ -81,12 +81,14 @@ class Run:
         # (The world.env.hold() call can be done after this function returns.)
     
     def test_inverse_kinamatics(self):
-        curent_q = self.world.robot1.q
+        # curent_q = self.world.robot1.q
         
-        goal = SE3(0.5788,1.27,0.8437)
-        goal_q = self.robot1_motion.inverse_kinematics(goal)
+        # goal = SE3(0.5788,1.27,0.8437)
+        # goal_q = self.robot1_motion.inverse_kinematics(goal)
         
-        qtraj = rtb.jtraj(curent_q, goal_q, 80).q
+        # qtraj = rtb.jtraj(curent_q, goal_q, 80).q
+        
+        qtraj = self.robot1_motion.calculate()
         return qtraj
         
     def set_robot_to_move_GUIHelper(self, robot_id):
@@ -193,7 +195,7 @@ class Run:
         if self.OPERATION.is_ready() and self.Start.is_active():
             self.OPERATION.set_state(SS.RUNNING)
             self.Start.set_state(SS.DEACTIVE) 
-            self.handle_pizza_stage()
+            #self.handle_pizza_stage()
         elif self.OPERATION.is_achieved():
             self.OPERATION.set_state(SS.READY)
             self.OPERATION_Counter = 0
@@ -245,7 +247,7 @@ class Run:
         if self.OPERATION.is_running():
             self.world.robot1.q = inputs.get("Test qtraj")[self.OPERATION_Counter]
             self.OPERATION_Counter += 1
-            if self.OPERATION_Counter == 80:
+            if self.OPERATION_Counter == 230:
                 self.OPERATION.set_state(SS.ACHIEVED)
             
         
