@@ -23,7 +23,7 @@ from ir_support.robots.DHRobot3D import DHRobot3D
 class Run:
     """Main controller for running the simulation loop and coordinating all components."""
     def __init__(self, world: World, gui: GUIImGui, estop: ExternalEStop, 
-                 logger: Logger, motions: list):
+                 logger: Logger, motions: list[Robot1Movement]):
         self.world = world
         self.gui = gui
         self.external_estop = estop
@@ -43,7 +43,7 @@ class Run:
         self.dt = 0.05 # change in time between updates
         self.time_in_loop = 0
         
-        self.actions_inputs = {}
+        self.joint_dict = {}
         
     
     def run_loop(self):
@@ -51,14 +51,12 @@ class Run:
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
         qtraj = self.test_inverse_kinamatics()
         
-        self.actions_inputs["Test qtraj"] = qtraj
+        self.joint_dict["Test qtraj"] = qtraj
         
         # Initilises all the varable states used in the program
         self.state_init()
         
         while self.running:
-            # For event managment
-            self.time_in_loop = float(self.world.env.sim_time)
                         
             # Update states
             self.handle_states()
@@ -66,29 +64,36 @@ class Run:
             # Update GUI and process events  
             self.handle_gui()
             
+            # Calculations
+            self.handle_calculations()
+            
             # Effects are enacted
-            self.handle_actions(self.actions_inputs)
+            self.handle_actions()
                 
             # Step the environment to update visuals
             self.world.env.step(self.dt)
             
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)
-            
-        
-        # End of loop - clean up if necessary (e.g., close env if not holding)
-        # (The world.env.hold() call can be done after this function returns.)
     
-    def test_inverse_kinamatics(self):
-        # curent_q = self.world.robot1.q
+    def handle_calculations(self):
+        """
+        Checks to see if there is a change from the last 
+        state and runs the calculations for the next robot.
+        """
+        if self.last_stage != self.pizza_stage:
+            match self.pizza_stage:
+                case PS.ROBOT_1:
+                    self.joint_dict["Robot 1 Movment"] = self.robot1_motion.calculate()
+                case PS.ROBOT_2:
+                    self.joint_dict["Robot 2 Movment"] = self.robot2_motion.calculate()
+                case PS.ROBOT_3:
+                    self.joint_dict["Robot 3 Movment"] = self.robot3_motion.calculate()
+                case PS.ROBOT_4:
+                    self.joint_dict["Robot 4 Movment"] = self.robot4_motion.calculate()
+                    
+        self.last_stage = self.pizza_stage
         
-        # goal = SE3(0.5788,1.27,0.8437)
-        # goal_q = self.robot1_motion.inverse_kinematics(goal)
-        
-        # qtraj = rtb.jtraj(curent_q, goal_q, 80).q
-        
-        qtraj = self.robot1_motion.calculate()
-        return qtraj
         
     def set_robot_to_move_GUIHelper(self, robot_id):
         if robot_id == 1: 
@@ -251,21 +256,20 @@ class Run:
                 self.world.plate2.T = self.world.plate2.T @ SE3( 0.1, 0, 0).A
                 self.conveyerloop = 1   
             
-    def handle_actions(self, inputs: dict):
+    def handle_actions(self):
         
         # Disabled if estop or paused
         if self.OPERATION.is_running():
+            
+            # Assigning the precalculated joint angles to each of the robots
             if self.pizza_stage == PS.ROBOT_1:
-                pass
-            
+                self.world.robot1.q = self.joint_dict.get("Robot 1 Movment")[self.OPERATION_Counter]
             elif self.pizza_stage == PS.ROBOT_2:
-                pass
-            
+                self.world.robot2.q = self.joint_dict.get("Robot 2 Movment")[self.OPERATION_Counter]
             elif self.pizza_stage == PS.ROBOT_3:
-                pass
-            
+                self.world.robot3.q = self.joint_dict.get("Robot 3 Movment")[self.OPERATION_Counter]
             elif self.pizza_stage == PS.ROBOT_4:
-                pass
+                self.world.robot4.q = self.joint_dict.get("Robot 4 Movment")[self.OPERATION_Counter]
             
             # Anamates the conveyerbelt & moves pizza
             elif self.pizza_stage == PS.FIRST_MOVE or PS.SECOND_MOVE or PS.THIRD_MOVE:
@@ -276,12 +280,6 @@ class Run:
             
             elif self.pizza_stage == PS.COMPLETED:
                 pass
-                
-            
-            self.world.robot1.q = inputs.get("Test qtraj")[self.OPERATION_Counter]
-            self.OPERATION_Counter += 1
-            if self.OPERATION_Counter == 200:
-                self.OPERATION.set_state(SS.ACHIEVED)
             
         
         
