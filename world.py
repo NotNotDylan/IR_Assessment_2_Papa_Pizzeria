@@ -77,6 +77,10 @@ class World:
                     color=(0.886,0.447,0.357,1.0))
         self.env.add(Pizza_Oven)
         
+        Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table_Toppings7.stl"),
+                    color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
+        self.env.add(Toppings_Table)
+        
         self.plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                         pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
         self.env.add(self.plate1)
@@ -106,9 +110,9 @@ class World:
             
             
 
-            Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table_Toppings7.stl"),
-                        color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
-            self.env.add(Toppings_Table)
+            # Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table_Toppings7.stl"),
+            #             color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
+            # self.env.add(Toppings_Table)
             
             # self.plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
             #               pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])

@@ -52,9 +52,8 @@ class Run:
         # Initilises all the varable states used in the program
         self.state_init()
         
-        # Make initial pizza base
-        self.pizza = ObjectNode(self.world.env, SE3(3.5, 3.6, 1.015), "Pizza's/Pizza_Base.stl", color=(0.90, 0.83, 0.70), name="Pizza")
-        self.pizza.add_to_world()
+        # Generate toppings and pizza (The moveable kind)
+        self.object_init()
         
         while self.running:
                         
@@ -75,6 +74,25 @@ class Run:
             
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)
+    
+    def object_init(self):
+        # Make initial pizza base
+        self.pizza = ObjectNode(self.world.env, SE3(3.5, 3.6, 1.015), "Pizza's/Pizza_Base.stl", color=(0.90, 0.83, 0.70), name="Pizza")
+        
+        # Make the toppings
+        self.cheese    = ObjectNode(self.world.env, SE3(6.5, 4, 1.004), "Pizza's/Pizza_Cheese.stl", color=(1.0, 0.78, 0.24) , name="cheese")
+        self.olives    = ObjectNode(self.world.env, SE3(6.2, 4, 1.01 ), "Pizza's/Olives.stl"      , color=(0.20, 0.20, 0.20), name="olives")
+        self.ham       = ObjectNode(self.world.env, SE3(5.9, 4, 1    ), "Pizza's/Ham.stl"         , color=(1.0, 0.71, 0.76) , name="ham")
+        self.pepperoni = ObjectNode(self.world.env, SE3(6.8, 4, 1    ), "Pizza's/Pepperoni.stl"   , color=(0.71, 0.20, 0.14), name="pepperoni")
+        self.pineapple = ObjectNode(self.world.env, SE3(7.1, 4, 1.005), "Pizza's/Pineapple.stl"   , color=(1.0, 0.90, 0.39) , name="pineapple")
+        
+        # Adding to the world
+        self.pizza.add_to_world()
+        self.cheese.add_to_world() 
+        self.olives.add_to_world() 
+        self.ham.add_to_world() 
+        self.pepperoni.add_to_world() 
+        self.pineapple.add_to_world()
     
     def handle_calculations(self):
         """
