@@ -1,7 +1,7 @@
 from external_e_stop import ExternalEStop
 from imgui_GUI import GUIImGui
 from logger import Logger
-import Simple_Gripper.manipulatable_object as manipulatable_object
+from manipulatable_object import ObjectNode
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement, MovementCalculation
 from states import State
 from world import World
@@ -33,8 +33,9 @@ class Run:
         self.running = True
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop) # Initialize simulation time
         self.conveyerloop = 1
+        self.last_stage = PS
         # Creating only one instance of the robot movment and calcuation objects
-        # self.robot_test_motion = MovementCalculation(self.world.robot_test)
+        
         self.robot1_motion = self.motions[0]
         self.robot2_motion = self.motions[1]
         self.robot3_motion = self.motions[2]
@@ -49,12 +50,13 @@ class Run:
     def run_loop(self):
         """Run the main simulation loop, updating state, handling inputs, and moving robots."""
         # Simulation loop runs until `self.running` is False (could be set by GUI or other stop condition)
-        qtraj = self.test_inverse_kinamatics()
-        
-        self.joint_dict["Test qtraj"] = qtraj
-        
+
         # Initilises all the varable states used in the program
         self.state_init()
+        
+        # Make initial pizza base
+        self.pizza = ObjectNode(self.world.env, SE3(4.6, 3.6, 1.015), "Pizza's/Pizza_Base.stl", color=(0.90, 0.83, 0.70), name="Pizza")
+        self.pizza.add_to_world()
         
         while self.running:
                         
@@ -199,7 +201,7 @@ class Run:
         if self.OPERATION.is_ready() and self.Start.is_active():
             self.OPERATION.set_state(SS.RUNNING)
             self.Start.set_state(SS.DEACTIVE) 
-            #self.handle_pizza_stage()
+            self.handle_pizza_stage()
         elif self.OPERATION.is_achieved():
             self.OPERATION.set_state(SS.READY)
             self.OPERATION_Counter = 0
@@ -274,6 +276,7 @@ class Run:
             # Anamates the conveyerbelt & moves pizza
             elif self.pizza_stage == PS.FIRST_MOVE or PS.SECOND_MOVE or PS.THIRD_MOVE:
                 self.conveyorBelt_step(period=5)
+                self.pizza.move_by(SE3.Tx(0.1/5))
                 
             elif self.pizza_stage == PS.MOTORCYCLE:
                 pass

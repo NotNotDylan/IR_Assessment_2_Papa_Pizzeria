@@ -1,6 +1,4 @@
-from Simple_Gripper.manipulatable_object import PizzaParts
-
-from run_sim import Run
+from manipulatable_object import ObjectNode
 import swift
 import roboticstoolbox as rtb
 from ir_support import UR3

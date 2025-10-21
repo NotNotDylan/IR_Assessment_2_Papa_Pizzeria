@@ -1,5 +1,6 @@
 import os
 from typing import Optional, List
+from pathlib import Path
 
 import swift
 from ir_support import UR3
@@ -14,7 +15,7 @@ class ObjectNode:
     - If attached: self._T_parent_this stores the child's pose relative to parent (SE3)
     """
 
-    def __init__(self, env: swift, pose: SE3, stl_path: str, color=(0.6, 0.6, 0.6, 1.0), name: Optional[str] = None):
+    """def __init__(self, env: swift, pose: SE3, stl_path: str, color=(0.6, 0.6, 0.6, 1.0), name: Optional[str] = None):
 
         self.env = env
 
@@ -26,6 +27,41 @@ class ObjectNode:
         self.name = name or os.path.basename(stl_path)
         self.mesh = Mesh(filename=stl_path, color=color, pose=pose)
 
+        self.parent: Optional['ObjectNode'] = None
+        self.children: List['ObjectNode'] = []
+        # Pose of THIS node relative to parent (parent -> this). Identity if no parent.
+        self._T_parent_this: SE3 = SE3()"""
+        
+    def __init__(
+            self,
+            env: swift,
+            pose: SE3,
+            stl_path: str | Path,
+            color=(0.6, 0.6, 0.6, 1.0),
+            name: Optional[str] = None,
+            asset_root: Path | None = None,   # NEW: base dir for relative paths
+        ):
+        self.env = env
+        if not isinstance(pose, SE3):
+            raise TypeError("pose must be an SE3")
+
+        # Resolve to an absolute, OS-safe path
+        p = Path(stl_path)
+        if asset_root is None:
+            # default to the project directory that contains this file
+            asset_root = Path(__file__).resolve().parent
+        if not p.is_absolute():
+            p = (asset_root / p).resolve()
+
+        if not p.is_file():
+            raise FileNotFoundError(
+                f"STL not found: {p}\n"
+                f"  CWD: {Path.cwd()}\n"
+                f"  asset_root: {asset_root}"
+            )
+
+        self.name = name or p.stem
+        self.mesh = Mesh(filename=str(p), color=color, pose=pose)
         self.parent: Optional['ObjectNode'] = None
         self.children: List['ObjectNode'] = []
         # Pose of THIS node relative to parent (parent -> this). Identity if no parent.
@@ -149,7 +185,7 @@ class ObjectNode:
 
 
 # Backwards-compatible alias for existing code
-PizzaParts = ObjectNode
+ObjectNode
 
 
 
@@ -158,8 +194,8 @@ if __name__ == "__main__":  # I sugest that you pause and zoom out alot to actua
     env = swift.Swift()
     env.launch(realtime=True)
     
-    base = PizzaParts(env, SE3(0.0, 0.0, 0.0), "IRB_4600/Base.stl", color=(0.5,0.5,0.5,1.0), name="PillarA")
-    arm  = PizzaParts(env, SE3(0.6, 0.4, 0.2), "IRB_4600/Link_1.stl",    color=(0.8,0.2,0.2,1.0), name="ArmOnA")
+    base = ObjectNode(env, SE3(0.0, 0.0, 0.0), "IRB_4600/Base.stl", color=(0.5,0.5,0.5,1.0), name="PillarA")
+    arm  = ObjectNode(env, SE3(0.6, 0.4, 0.2), "IRB_4600/Link_1.stl",    color=(0.8,0.2,0.2,1.0), name="ArmOnA")
 
     base.add_to_world()
     arm.add_to_world()

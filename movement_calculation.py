@@ -1,4 +1,4 @@
-from Simple_Gripper.manipulatable_object import PizzaParts
+from manipulatable_object import ObjectNode
 
 import numpy as np
 from spatialmath import SE3
@@ -100,7 +100,7 @@ class Robot2Movement(MovementCalculation):
         super().__init__(robot_model)
         self.toppings_placed = False  # or count of toppings placed
     
-    def run(self):
+    def calculate(self):
         """
         Zero position
         pick place topping
@@ -116,7 +116,7 @@ class Robot3Movement(MovementCalculation):
         super().__init__(robot_model)
         self.pizza_in_oven = False
     
-    def run(self):
+    def calculate(self):
         """
         pick up pizza
         place in oven
@@ -132,7 +132,7 @@ class Robot4Movement(MovementCalculation):
         super().__init__(robot_model)
         self.box_ready = False
     
-    def run(self):
+    def calculate(self):
         """
         pick up pizza box
         place on motorcycle
