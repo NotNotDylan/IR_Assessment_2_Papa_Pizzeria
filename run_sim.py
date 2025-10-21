@@ -1,6 +1,5 @@
 from external_e_stop import ExternalEStop
 from imgui_GUI import GUIImGui
-from logger import Logger
 from manipulatable_object import ObjectNode
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement, MovementCalculation
 from states import State
@@ -23,11 +22,10 @@ from ir_support.robots.DHRobot3D import DHRobot3D
 class Run:
     """Main controller for running the simulation loop and coordinating all components."""
     def __init__(self, world: World, gui: GUIImGui, estop: ExternalEStop, 
-                 logger: Logger, motions: list[Robot1Movement]):
+                 motions: list[Robot1Movement]):
         self.world = world
         self.gui = gui
         self.external_estop = estop
-        self.logger = logger
         self.motions = motions  # list of robot motion controller objects
         self.running = True
         self.running = True

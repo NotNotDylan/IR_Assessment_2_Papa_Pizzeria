@@ -1,6 +1,5 @@
 from external_e_stop import ExternalEStop
 from imgui_GUI import GUIImGui
-from logger import Logger
 import manipulatable_object as manipulatable_object
 from movement_calculation import Robot1Movement, Robot2Movement, Robot3Movement, Robot4Movement
 from run_sim import Run
@@ -9,7 +8,6 @@ from world import World
 
 from ir_support import DHRobot3D
 import numpy as np
-#testing
 
 def adapter(robot_model: DHRobot3D):
     '''Given a robot this function will extract the preameters the GUI requires to controle it'''
@@ -45,8 +43,6 @@ def main():
     # Initialize GUI and safety systems
     gui = GUIImGui()
     estop = ExternalEStop(port='COM6', baud=115200, ex_estop_connected=False) # Will try auto detect if no port asserted
-    # logger = Logger()
-    
 
     robots_dict = {
         1: adapter(world.robot1),
@@ -66,14 +62,10 @@ def main():
                Robot4Movement(world.robot4)]
     
     # Create the main runner and pass all components
-    runner = Run(world=world, gui=gui, estop=estop, logger=None,motions=motions)
+    runner = Run(world=world, gui=gui, estop=estop, motions=motions)
     
     # Start the main simulation loop (this will run until stopped)
     runner.run_loop()
-    
-    
-    # After loop ends (e.g., simulation stopped), hold the environment open
-    # world.env.hold()  # Keep Swift window open (if needed for viewing after stop)
     
     
 if __name__ == '__main__':
