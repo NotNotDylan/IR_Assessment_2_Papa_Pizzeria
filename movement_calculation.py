@@ -68,42 +68,13 @@ class Robot1Movement(MovementCalculation):
         super().__init__(robot_model)
         self.sauce_applied = False  # flag to indicate if sauce task done for current pizza
     
-    def update(self, state):
-        """Update Robot1 actions: if a pizza is ready for sauce, perform the sauce dispensing routine."""
-        # If Robot1 is free and a pizza is ready for sauce:
-        for pizza in state.pizzas:
-            if pizza.stage == "ready_for_sauce" and not self.sauce_applied:
-                # Move to sauce dispense position above the pizza
-                target_pose = pizza.mesh.pose * SE3(0, 0, 0.3)  # e.g., 30 cm above pizza center
-                # Compute IK for that position
-                q_target = self.inverse_kinematics(target_pose)
-                if q_target is not None:
-                    # Check for singularities or unreachable config
-                    if self.detect_singularity(self.compute_jacobian(q_target)):
-                        # If near singular, maybe adjust or use damped IK
-                        q_target = self.inverse_kinematics(target_pose)  # (could use different method or damping)
-                    # Collision avoidance check (e.g., ensure not colliding with pizza or environment)
-                    if self.avoid_collisions(q_target):
-                        # If collision would occur, adjust path (for simplicity, skip or raise arm)
-                        adjusted_pose = pizza.mesh.pose * SE3(0, 0, 0.5)
-                        q_target = self.inverse_kinematics(adjusted_pose)
-                    # Command robot to move (here, just set target joints)
-                    self.target_joint_positions = q_target
-                    self.robot.q = q_target  # directly setting for instant move in simulation (or interpolate in steps)
-                    # Simulate sauce dispensing action (could be a delay or a small spiral motion)
-                    # e.g., you might do a small circle with end-effector over pizza:
-                    # (skipping actual path, but in a real case you'd generate a trajectory or use visual servo to spread sauce)
-                    self.sauce_applied = True
-                    pizza.stage = "sauce_done"
-                    state.robot_busy[1] = False  # free robot1 after done
-                    # Reactivate conveyor 1 to send pizza to next station
-                    if len(self.robot.q) > 0:  # dummy check to avoid error
-                        state.world.conveyors[0].active = True
-                else:
-                    # IK failed (target not reachable?), consider this an error or adjust pose.
-                    self.robot.q = self.robot.q  # no change (could log an error)
-        # If no pizza ready or already handled, Robot1 remains idle.
-        return
+    def run(self, state):
+        """
+        Zero position
+        Circle above pizza (Four points untill RMRC)
+        Zero position
+        """
+        pass
 
 class Robot2Movement(MovementCalculation):
     """Controls Robot 2 (Topping placement robot) movements and task execution."""
@@ -111,42 +82,14 @@ class Robot2Movement(MovementCalculation):
         super().__init__(robot_model)
         self.toppings_placed = False  # or count of toppings placed
     
-    def update(self, state):
-        """Update Robot2 actions: place toppings on pizza when ready."""
-        """for pizza in state.pizzas:
-            if pizza.stage == "ready_for_toppings" and not self.toppings_placed:
-                # Example procedure: pick up a topping from a bin, place on pizza, repeat for all toppings.
-                # You might have predefined bin locations for toppings.
-                toppings_to_add = ["Topping1", "Topping2"]  # example list of topping types
-                for topping_type in toppings_to_add:
-                    # Get or create a topping object from the pizza or environment
-                    topping = Topping(type=topping_type)
-                    # Spawn topping at bin location (you could have pre-placed them and just pick one)
-                    topping.mesh.pose = SE3(...)  # TODO: position at bin pickup location
-                    state.world.add_object(topping)
-                    # Move robot to pick topping
-                    pickup_pose = topping.mesh.pose * SE3(0, 0, 0.1)  # above the topping
-                    q_pick = self.inverse_kinematics(pickup_pose)
-                    if q_pick is not None:
-                        self.robot.q = q_pick  # move to pickup
-                        # (Simulate gripper closing on topping - could just attach topping to robot in simulation)
-                        # Move to place topping on pizza
-                        place_pose = pizza.mesh.pose * SE3(0, 0, 0.05)  # just above pizza surface
-                        q_place = self.inverse_kinematics(place_pose)
-                        if q_place is not None:
-                            self.robot.q = q_place
-                            # Release topping (place it) by leaving it in environment on pizza
-                            topping.mesh.pose = pizza.mesh.pose * SE3(0, 0, 0.01)  # position topping on pizza
-                            topping.attached_to_pizza = pizza
-                        # (In a real sim, remove topping from robot gripper; here we just reposition it)
-                    # End loop for one topping
-                # After placing all toppings:
-                self.toppings_placed = True
-                pizza.stage = "toppings_done"
-                state.robot_busy[2] = False
-                # Restart conveyor 2 to move pizza to next station (oven)
-                state.world.conveyors[1].active = True"""
-        #return
+    def run(self, state):
+        """
+        Zero position
+        pick place topping
+        pick place topping
+        pick place topping
+        Zero position
+        """
         pass
 
 class Robot3Movement(MovementCalculation):
@@ -155,40 +98,15 @@ class Robot3Movement(MovementCalculation):
         super().__init__(robot_model)
         self.pizza_in_oven = False
     
-    def update(self, state):
-        """Update Robot3 actions: load pizza into oven, wait, and unload it."""
-        for pizza in state.pizzas:
-            if pizza.stage == "ready_for_oven" and not self.pizza_in_oven:
-                # Move to pick pizza from conveyor 3
-                pick_pose = pizza.mesh.pose * SE3(0, 0, 0.1)  # just above pizza
-                q_pick = self.inverse_kinematics(pick_pose)
-                if q_pick is not None:
-                    self.robot.q = q_pick
-                    # Simulate picking up the pizza (attach to robot's "spatula")
-                    # Remove pizza from conveyor visually: (or mark it as being carried)
-                    state.world.remove_object(pizza)
-                    # Move to oven entry position
-                    oven_entry_pose = SE3(...)  # predefined pose just in front of oven
-                    q_oven = self.inverse_kinematics(oven_entry_pose)
-                    if q_oven is not None:
-                        self.robot.q = q_oven
-                        # Place pizza into oven (in sim, you might just wait a moment)
-                        self.pizza_in_oven = True
-                        pizza.stage = "in_oven"
-                        # (You could add a delay or loop to simulate baking time)
-                        # After baking time:
-                        pizza.stage = "baked"
-                        # Pick pizza out of oven (same pose as entry for simplicity)
-                        self.robot.q = q_oven
-                        # Re-add pizza object to scene as if taken out
-                        state.world.add_object(pizza)
-                        pizza.mesh.pose = oven_entry_pose  # now pizza is at oven exit
-                        self.pizza_in_oven = False
-                        pizza.stage = "out_of_oven"
-                        state.robot_busy[3] = False
-                        # Reactivate conveyor 3 to move pizza to final station (if there's a small output conveyor)
-                        state.world.conveyors[2].active = True
-        return
+    def run(self, state):
+        """
+        pick up pizza
+        place in oven
+        wait outside
+        pick up pizza
+        place in box
+        """
+        pass
 
 class Robot4Movement(MovementCalculation):
     """Controls Robot 4 (Packaging and loading robot) movements and task execution."""
@@ -196,31 +114,9 @@ class Robot4Movement(MovementCalculation):
         super().__init__(robot_model)
         self.box_ready = False
     
-    def update(self, state):
-        """Update Robot4 actions: pack pizza into box and load onto motorbike."""
-        for pizza in state.pizzas:
-            if pizza.stage == "ready_for_pack":
-                # If not already in a box, place pizza in box
-                if not self.box_ready:
-                    # Create a box object and place pizza in it (for simplicity, we just assume box is at robot station)
-                    pizza.in_box = True  # mark pizza as boxed (you could swap the pizza mesh to a box mesh)
-                    self.box_ready = True
-                # Now lift the boxed pizza and place it on the motorbike
-                target_pose = state.world.motorbike.pose * SE3(0, 0, 0.5)  # e.g., above bike's storage area
-                # Visual servoing could be used here to adjust final placement:
-                # For example, use a camera to find the exact bike rack position. Simulate by fine-tuning the target pose.
-                # TODO: Implement visual servoing loop: repeatedly get current end-effector pose and compute small adjustments until aligned.
-                q_target = self.inverse_kinematics(target_pose)
-                if q_target is not None:
-                    self.robot.q = q_target
-                    # Release the box (pizza) on the bike
-                    pizza.mesh.pose = state.world.motorbike.pose * SE3(0, 0, 0.1)  # put pizza box on bike seat
-                    pizza.delivered = True
-                    pizza.stage = "loaded_on_bike"
-                    state.robot_busy[4] = False
-                    # Simulate motorbike driving off with the pizza
-                    # You might animate the bike or just remove the pizza:
-                    state.world.remove_object(pizza)
-                # Reset box_ready for next pizza
-                self.box_ready = False
-        return
+    def run(self, state):
+        """
+        pick up pizza box
+        place on motorcycle
+        """
+        pass

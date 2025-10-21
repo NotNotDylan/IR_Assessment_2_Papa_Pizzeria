@@ -103,7 +103,6 @@ class Run:
             self.active_robot = self.world.robot4
             self.active_robot_calcs = self.robot4_motion
         
-    
     def handle_gui(self):
         
         is_paused = (self.OPERATION.is_suspended() or not self.OPERATION.is_running())
