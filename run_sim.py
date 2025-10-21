@@ -295,13 +295,14 @@ class Run:
             if self.pizza_stage == PS.ROBOT_1:
                 self.world.robot1.q = self.joint_dict.get("Robot 1 Movment")[self.OPERATION_Counter]
                 # Materilise sauce
-                if self.OPERATION_Counter == 130:
+                if self.OPERATION_Counter == 51:
                     self.sauce = ObjectNode(self.world.env, SE3(0.0, 0.0, 0.0), "Pizza's/Pizza_Sauce.stl", color=(0.698, 0.133, 0.133), name="Sauce")
                     self.sauce.attach_to(self.pizza, keep_world_pose=False)
                     self.sauce.set_local_to_parent(SE3(0, 0, 0.0075))
                     self.sauce.add_to_world()
             elif self.pizza_stage == PS.ROBOT_2:
-                self.world.robot2.q = self.joint_dict.get("Robot 2 Movment")[self.OPERATION_Counter]
+                fkine_result, self.world.robot2.q = self.joint_dict.get("Robot 2 Movment")[self.OPERATION_Counter]
+                # within particular ranges of self.OPERATION_Counter use fkine_result to attach particular toppins to the end effector to place and attach to the pizza
             elif self.pizza_stage == PS.ROBOT_3:
                 self.world.robot3.q = self.joint_dict.get("Robot 3 Movment")[self.OPERATION_Counter]
             elif self.pizza_stage == PS.ROBOT_4:

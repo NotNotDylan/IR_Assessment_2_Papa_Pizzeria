@@ -288,7 +288,9 @@ class Robot2Movement(MovementCalculation):
             q_traj11 
         ], axis=0)
         
-        return q_traj_final # (30*2)+(10*18) = 240 steps
+        fkine_result = [self.robot.fkine(q) for q in q_traj_final]
+        
+        return fkine_result, q_traj_final # (30*2)+(10*18) = 240 steps
 
 class Robot3Movement(MovementCalculation):
     """Controls Robot 3 (Oven handling robot) movements and task execution."""
