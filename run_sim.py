@@ -233,7 +233,10 @@ class Run:
     
     def pizza_stage_clock_helper(self, operation: State, next_stage: PS, counter: int):
         operation.set_state(SS.ACTIVE)
-        self.OPERATION_Counter += 1
+        
+        if self.OPERATION.is_running():
+            self.OPERATION_Counter += 1
+            
         if self.OPERATION_Counter == counter:  # Operation will take this many steps
             operation.set_state(SS.DEACTIVE)
             self.OPERATION_Counter = 0
