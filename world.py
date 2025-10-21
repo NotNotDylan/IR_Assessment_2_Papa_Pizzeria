@@ -5,7 +5,7 @@ import roboticstoolbox as rtb
 from ir_support import UR3
 from ABB_IRB_2400.IRB_2400 import IRB2400
 from IRB_4600.ABB_IRB_4600 import IRB_4600
-#from Auboi5Final.i5Init import AuboI5
+from AuboI5.i5Init import AuboI5
 from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
@@ -25,10 +25,10 @@ class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
-        self.robot1 = UR3()         # Robot performing sauce application
-        self.robot2 = None        # Robot performing topping placement
-        self.robot3 = IRB_4600()        # Robot handling oven loading/unloading
-        self.robot4 = IRB2400()        # Robot packaging and loading pizza on bike
+        self.robot1 = UR3()        # Robot performing sauce application
+        self.robot2 = AuboI5()     # Robot performing topping placement
+        self.robot3 = IRB_4600()   # Robot handling oven loading/unloading
+        self.robot4 = IRB2400()    # Robot packaging and loading pizza on bike
         self.conveyors = []        # List of ConveyorBelt objects in the system
         self.motorbike = None      # The motorbike object (for delivery)
         self.safety_barriers = []  # Any safety barrier objects (e.g., fences, light curtain representation)
@@ -232,8 +232,8 @@ class World:
         self.robot1.base = SE3(4.6,4.05,1.0)
         self.robot1.add_to_env(self.env)
 
-        # self.robot2.base = SE3(6.52,4.4,1.0)
-        # self.robot2.add_to_env(self.env)
+        self.robot2.base = SE3(6.52,4.4,1.0)
+        self.robot2.add_to_env(self.env)
         
         self.robot3.base = SE3(9.72,5.6,0.5)
         self.robot3.add_to_env(self.env)

@@ -36,7 +36,7 @@ class Run:
         # Creating only one instance of the robot movment and calcuation objects
         # self.robot_test_motion = MovementCalculation(self.world.robot_test)
         self.robot1_motion = self.motions[0]
-        # self.robot2_motion = self.motions[1]
+        self.robot2_motion = self.motions[1]
         self.robot3_motion = self.motions[2]
         self.robot4_motion = self.motions[3]
         
@@ -92,9 +92,9 @@ class Run:
         if robot_id == 1: 
             self.active_robot = self.world.robot1
             self.active_robot_calcs = self.robot1_motion
-        # elif robot_id == 2:
-        #     self.active_robot = self.world.robot2
-        #     self.active_robot_calcs = self.robot2_motion
+        elif robot_id == 2:
+            self.active_robot = self.world.robot2
+            self.active_robot_calcs = self.robot2_motion
         elif robot_id == 3:
             self.active_robot = self.world.robot3
             self.active_robot_calcs = self.robot3_motion

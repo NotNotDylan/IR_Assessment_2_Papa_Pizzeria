@@ -51,7 +51,7 @@ def main():
 
     robots_dict = {
         1: adapter(world.robot1),
-        #2: adapter(world.robot2),
+        2: adapter(world.robot2),
         3: adapter(world.robot3),
         4: adapter(world.robot4),
     }
