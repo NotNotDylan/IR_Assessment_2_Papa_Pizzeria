@@ -11,7 +11,6 @@ from ir_support import DHRobot3D
 import numpy as np
 #testing
 
-# a comment that I can commit to see if it let's me murge the code
 def adapter(robot_model: DHRobot3D):
     '''Given a robot this function will extract the preameters the GUI requires to controle it'''
 

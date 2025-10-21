@@ -84,15 +84,15 @@ class Robot1Movement(MovementCalculation):
         
         # Calculate trajectories
         q_traj1 = rtb.jtraj(q_step1, q_step2, 70).q
-        q_traj2 = rtb.jtraj(q_step2, q_step3, 30).q
-        q_traj3 = rtb.jtraj(q_step3, q_step4, 30).q
-        q_traj4 = rtb.jtraj(q_step4, q_step5, 30).q
+        q_traj2 = rtb.jtraj(q_step2, q_step3, 20).q
+        q_traj3 = rtb.jtraj(q_step3, q_step4, 20).q
+        q_traj4 = rtb.jtraj(q_step4, q_step5, 20).q
         q_traj5 = rtb.jtraj(q_step5, q_step6, 70).q
         
         # Join togther trajectories
         q_traj_final = np.concatenate([q_traj1, q_traj2, q_traj3, q_traj4, q_traj5], axis=0)
         
-        return q_traj_final # 70+30+30+30+70 = 230 steps
+        return q_traj_final # 70+20+20+20+70 = 200 steps
 
 class Robot2Movement(MovementCalculation):
     """Controls Robot 2 (Topping placement robot) movements and task execution."""

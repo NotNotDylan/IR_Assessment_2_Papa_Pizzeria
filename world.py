@@ -1,5 +1,6 @@
 from Simple_Gripper.manipulatable_object import PizzaParts
 
+from run_sim import Run
 import swift
 import roboticstoolbox as rtb
 from ir_support import UR3
@@ -143,9 +144,9 @@ class World:
                         color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
             self.env.add(Toppings_Table)
             
-            self.plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+            self.plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
-            self.env.add(self.plate)
+            self.env.add(self.plate1)
 
             self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
@@ -219,7 +220,6 @@ class World:
             # Decorations
             # Oven
             pass
-        
     
     def setup_robots_and_objects(self):
         """Load robots, conveyors, and objects into the environment."""
@@ -245,19 +245,6 @@ class World:
         self.collisions = cyl_collision.create_cylinders()
         self.env.add(self.collisions)
         
-        
-        # TODO: Create conveyor belts and add to scene
-        # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
-        # self.conveyors.append(conv1)
-        # (You might represent conveyors visually by adding a mesh or using shapes)
-        #
-        # TODO: Load the motorbike model or shape and add to scene
-        # e.g., bike_mesh = geometry.Mesh('motorbike.stl', pose=SE3(x,y,z), color=(...))
-        # self.motorbike = bike_mesh
-        # self.env.add(self.motorbike)
-        #
-        # TODO: Add any safety barriers or light curtain visuals (if any)
-        # e.g., a transparent plane or lines indicating the light curtain region.
     
     '''def add_object(self, obj):
         """Add a manipulatable object (pizza, topping, etc.) to the environment and keep track of it."""

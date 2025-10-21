@@ -32,8 +32,7 @@ class Run:
         self.running = True
         self.running = True
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop) # Initialize simulation time
-        self.loop = 1
-        self.loop2 = 1
+        self.conveyerloop = 1
         # Creating only one instance of the robot movment and calcuation objects
         # self.robot_test_motion = MovementCalculation(self.world.robot_test)
         self.robot1_motion = self.motions[0]
@@ -170,12 +169,12 @@ class Run:
         self.pizza_stage = PS.FIRST_MOVE
         
         # Object State
-        self.robot1_state        = State(SS.DEACTIVE)
-        self.robot2_state        = State(SS.DEACTIVE)
-        self.robot3_state        = State(SS.DEACTIVE)
-        self.robot4_state        = State(SS.DEACTIVE)
-        self.motorcycle_state    = State(SS.DEACTIVE)
-        self.conveyerbelt_state  = State(SS.DEACTIVE)
+        # self.robot1_state        = State(SS.DEACTIVE)
+        # self.robot2_state        = State(SS.DEACTIVE)
+        # self.robot3_state        = State(SS.DEACTIVE)
+        # self.robot4_state        = State(SS.DEACTIVE)
+        # self.motorcycle_state    = State(SS.DEACTIVE)
+        # self.conveyerbelt_state  = State(SS.DEACTIVE)
         self.light_curtain_state = State(SS.DEACTIVE)
         
         # gui buttons
@@ -214,40 +213,74 @@ class Run:
         """Handles which operations are occuring at the time"""
         match self.pizza_stage:
             case PS.FIRST_MOVE:
-                self.pizza_stage_clock_helper(self.conveyerbelt_state, PS.ROBOT_1    , 15)
+                self.pizza_stage_clock_helper(PS.ROBOT_1    , 15)
             case PS.ROBOT_1:
-                self.pizza_stage_clock_helper(self.robot1_state      , PS.SECOND_MOVE, 80)
+                self.pizza_stage_clock_helper(PS.SECOND_MOVE, 200)
             case PS.SECOND_MOVE: 
-                self.pizza_stage_clock_helper(self.conveyerbelt_state, PS.ROBOT_2    , 30)
+                self.pizza_stage_clock_helper(PS.ROBOT_2    , 30)
             case PS.ROBOT_2: 
-                self.pizza_stage_clock_helper(self.robot2_state      , PS.THIRD_MOVE , 80)
+                self.pizza_stage_clock_helper(PS.THIRD_MOVE , 80)
             case PS.THIRD_MOVE: 
-                self.pizza_stage_clock_helper(self.conveyerbelt_state, PS.ROBOT_3    , 30)
+                self.pizza_stage_clock_helper(PS.ROBOT_3    , 30)
             case PS.ROBOT_3: 
-                self.pizza_stage_clock_helper(self.robot3_state      , PS.ROBOT_4    , 80)
+                self.pizza_stage_clock_helper(PS.ROBOT_4    , 80)
             case PS.ROBOT_4: 
-                self.pizza_stage_clock_helper(self.robot4_state      , PS.MOTORCYCLE , 80)
+                self.pizza_stage_clock_helper(PS.MOTORCYCLE , 80)
             case PS.MOTORCYCLE: 
-                self.pizza_stage_clock_helper(self.motorcycle_state  , PS.COMPLETED  , 50)
+                self.pizza_stage_clock_helper(PS.COMPLETED  , 50)
             case PS.COMPLETED:
                 pass
     
-    def pizza_stage_clock_helper(self, operation: State, next_stage: PS, counter: int):
-        operation.set_state(SS.ACTIVE)
-        
+    def pizza_stage_clock_helper(self, next_stage: PS, counter: int):   
         if self.OPERATION.is_running():
             self.OPERATION_Counter += 1
             
         if self.OPERATION_Counter == counter:  # Operation will take this many steps
-            operation.set_state(SS.DEACTIVE)
             self.OPERATION_Counter = 0
             self.pizza_stage = next_stage
+    
+    def conveyorBelt_step(self, period: int = 5): 
+        if (self.OPERATION_Counter % period) == 0:
+            if self.conveyerloop == 1: 
+                self.world.plate1.T = self.world.plate1.T @ SE3( 0.1, 0, 0).A
+                self.world.plate2.T = self.world.plate2.T @ SE3(-0.1, 0, 0).A
+                self.conveyerloop = 2
+
+            elif self.conveyerloop == 2:
+                self.world.plate1.T = self.world.plate1.T @ SE3(-0.1, 0, 0).A
+                self.world.plate2.T = self.world.plate2.T @ SE3( 0.1, 0, 0).A
+                self.conveyerloop = 1   
             
     def handle_actions(self, inputs: dict):
+        
+        # Disabled if estop or paused
         if self.OPERATION.is_running():
+            if self.pizza_stage == PS.ROBOT_1:
+                pass
+            
+            elif self.pizza_stage == PS.ROBOT_2:
+                pass
+            
+            elif self.pizza_stage == PS.ROBOT_3:
+                pass
+            
+            elif self.pizza_stage == PS.ROBOT_4:
+                pass
+            
+            # Anamates the conveyerbelt & moves pizza
+            elif self.pizza_stage == PS.FIRST_MOVE or PS.SECOND_MOVE or PS.THIRD_MOVE:
+                self.conveyorBelt_step(period=5)
+                
+            elif self.pizza_stage == PS.MOTORCYCLE:
+                pass
+            
+            elif self.pizza_stage == PS.COMPLETED:
+                pass
+                
+            
             self.world.robot1.q = inputs.get("Test qtraj")[self.OPERATION_Counter]
             self.OPERATION_Counter += 1
-            if self.OPERATION_Counter == 230:
+            if self.OPERATION_Counter == 200:
                 self.OPERATION.set_state(SS.ACHIEVED)
             
         
