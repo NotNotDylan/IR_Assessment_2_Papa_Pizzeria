@@ -76,10 +76,10 @@ class Robot1Movement(MovementCalculation):
         """
         # Joint anges at each step
         q_step1 = self.robot.q  # initial configuration
-        q_step2 = self.inverse_kinematics(None, q_step1) #TODO: Replace 'None' with SE3 target
-        q_step3 = self.inverse_kinematics(None, q_step2)
+        q_step2 = self.inverse_kinematics(None, q_step1)  # Three points of a triangle (circle)
+        q_step3 = self.inverse_kinematics(None, q_step2)  #TODO: Replace 'None' with SE3 target
         q_step4 = self.inverse_kinematics(None, q_step3)
-        q_step5 = self.inverse_kinematics(None, q_step4)
+        q_step5 = q_step2 # This step completes the circle
         q_step6 = q_step1
         
         # Calculate trajectories
@@ -90,9 +90,9 @@ class Robot1Movement(MovementCalculation):
         q_traj5 = rtb.jtraj(q_step5, q_step6, 70).q
         
         # Join togther trajectories
-        q_traj_final =  np.concatenate(q_traj1, q_traj2, q_traj3, q_traj4, q_traj5)
+        q_traj_final = np.concatenate(q_traj1, q_traj2, q_traj3, q_traj4, q_traj5)
         
-        return q_traj_final
+        return q_traj_final # 70+30+30+30+70 = 230 steps
 
 class Robot2Movement(MovementCalculation):
     """Controls Robot 2 (Topping placement robot) movements and task execution."""
