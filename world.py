@@ -33,6 +33,8 @@ class World:
         self.safety_barriers = []  # Any safety barrier objects (e.g., fences, light curtain representation)
         self.objects = []          # List to hold other objects (pizzas, toppings, etc. currently in scene)
         # (Other environment attributes can be added as needed)
+        self.collision_opacity = 0.001 # Can't be 0 or it will crash
+               
         self.last_update = time.time()
         self.plates = []
         self.x = 4.05
@@ -53,7 +55,6 @@ class World:
         self.pos3 = SE3(8.7, 3.6, 1.015)
         self.pos = 1
         self.sauce_placed = False
-        self.collision_opacity = 0.5
         self.xp = 7.5
         self.yp = 6.5
         self.meshes = []
@@ -62,14 +63,7 @@ class World:
     
     def launch(self, environment_objects: bool = False):
         """Start the simulator and set up the static scene (floor, walls, etc.)."""
-        # TODO: Create and launch the Swift environment
-        # Example:
-        # self.env = swift.Swift()
-        # self.env.launch(realtime=True)
-        # Add floor or background:
-        # floor = geometry.Box(..., pose=SE3(0,0,-0.01), color=(0.5,0.5,0.5,1))
-        # self.env.add(floor)
-        
+      
         self.env.launch(realtime=True)
         
         self.env.set_camera_pose([8, 14, 7], [8, 3, 0])
@@ -238,24 +232,9 @@ class World:
             ])
 
             print(self.bounds_array[0][0])
-
-
-
-
-            
-
-            # Floor
-            # Safety
-            # Decorations
-            # Oven
-            pass
     
     def setup_robots_and_objects(self):
         """Load robots, conveyors, and objects into the environment."""
-        # TODO: Initialize robot models (from RTB or custom DH parameters)
-        # e.g., self.robot1 = rtb.models.DH.SomeRobotModel() or custom Robot class
-        # Position robots in the scene (adjust base if needed, e.g., robot1.base = SE3(x,y,z))
-        # Add robots to the Swift environment: self.env.add(self.robot1)
         
         # self.env.add(self.robot_test)
         self.robot1.base = SE3(4.6,4.05,1.0)
@@ -269,11 +248,6 @@ class World:
 
         self.robot4.base = SE3(5.84, 6.49, 0.5)
         self.robot4.add_to_env(self.env)
-
-        cyl_collision = CylindricalDHRobotPlot(self.robot3, cylinder_radius=0.05,color=(1,0,0,1))
-        self.collisions = cyl_collision.create_cylinders()
-        self.env.add(self.collisions)
-        
     
     '''def add_object(self, obj):
         """Add a manipulatable object (pizza, topping, etc.) to the environment and keep track of it."""

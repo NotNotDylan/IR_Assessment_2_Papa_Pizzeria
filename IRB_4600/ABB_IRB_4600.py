@@ -126,7 +126,9 @@ class IRB_4600(DHRobot3D):
         
 
         env.set_camera_pose([2.5, -2.0, 1.5], [0, 0, 1.0])
-
+        
+        # Early tests that don't matter so much now
+        """
         q = self.q
         T1 = self.fkine(q)
         x1 = T1.t
@@ -193,18 +195,14 @@ class IRB_4600(DHRobot3D):
                 if -2 <= points_array[i][1] <= 2:
                     if 0 <= points_array[i][2] <= 5:
                         print("COLLISION at", points_array[i])
-
-
         # Check which points are inside the box
         
 
         # Print results
 
-                
-
-            
-                # Update next joint state
-        env.hold()     
+        Update next joint state
+        env.hold()
+        """
 
 if __name__ == "__main__":    
     IRB_4600().test()
