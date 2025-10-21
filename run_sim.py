@@ -31,7 +31,8 @@ class Run:
         self.running = True
         self.running = True
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop) # Initialize simulation time
-        
+        self.loop = 1
+        self.loop2 = 1
         # Creating only one instance of the robot movment and calcuation objects
         # self.robot_test_motion = MovementCalculation(self.world.robot_test)
         self.robot1_motion = self.motions[0]

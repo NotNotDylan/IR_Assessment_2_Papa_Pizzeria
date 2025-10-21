@@ -6,11 +6,18 @@ import swift
 import roboticstoolbox as rtb
 import spatialmath.base as spb
 from spatialmath import SE3
-from spatialgeometry import Arrow
+from spatialgeometry import Arrow, Cuboid, Cylinder
+import numpy as np
+from scipy import linalg
+
 
 from ir_support.robots.DHRobot3D import DHRobot3D
+from roboticstoolbox import DHLink, DHRobot, models, jtraj, trapezoidal
+from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHRobotPlot
 
- 
+from ir_support import EllipsoidRobot
+import trimesh
+
     
 def deg2rad(degrees):
     """Convert degrees to radians."""
@@ -40,7 +47,7 @@ class IRB_4600(DHRobot3D):
             link3="Link_3",  
             link4="Link_4",   
             link5="Link_5",   
-            link6="Link_6",   
+            link6="Link_6_V2",
         )
 
         # A convenient "inspection" configuration to align meshes
@@ -68,6 +75,7 @@ class IRB_4600(DHRobot3D):
             qtest_transforms=qtest_transforms,
         )
 
+
         self.q = qtest
 
     # ------------------------------
@@ -92,34 +100,118 @@ class IRB_4600(DHRobot3D):
             [deg2rad(-125), deg2rad(+120)],        # A5 ±120
             [deg2rad(-400), deg2rad(+400)],        # A6 ±400
         ]
-
+        
         links = []
         for i in range(6):
-            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], offset=offset[i], qlim=qlim[i]))
+            links.append(rtb.RevoluteDH(d=d[i], a=a[i], alpha=alpha[i], offset=offset[i], qlim=qlim[i],))      
         return links
-
+    
+    def is_point_inside_mesh(self, mesh, point):
+        if mesh.contains([point]):
+            return True
+        else:
+            return False
+    
+    
     # ------------------------------
     def test(self):
         """
         Smoke-test: add to Swift, jog a bit, then pause.
         """
+        self._tool = None
         env = swift.Swift()
         env.launch(realtime=True)
 
         self.add_to_env(env)
+        
+
         env.set_camera_pose([2.5, -2.0, 1.5], [0, 0, 1.0])
 
-        q_goal = [self.q[i] - pi/8 for i in range(self.n)]
-        qtraj = rtb.jtraj(self.q, q_goal, 20).q
-        for q in qtraj:
+        q = self.q
+        T1 = self.fkine(q)@SE3.Rz(0)
+        x1 = T1.t
+
+
+        T2 = SE3(1,1,0.250)@SE3.Rz(0)
+        x2 = T2.t
+
+        delta_t = 0.05
+        steps = 100
+        
+
+        box = trimesh.load(r'C:\Users\Aidan\Desktop\PyIR\Assignment 2\Collision_Test.stl')
+
+        inside = self.is_point_inside_mesh(box,[1, 1, 0.25])
+        print(inside)
+        print(box)
+        print("box:", box)
+        print("bounds:", box.bounds)           # min and max extents
+        print("centroid:", box.centroid)       # mesh centroid
+        print("is_watertight:", box.is_watertight)
+        print("face_normals valid:", box.face_normals.shape)
+
+
+
+        # prism = Cuboid(scale=(1,1,0.4), color=[0.0, 1.0, 0.0, 0.5],pose=SE3(1,1,0.2))
+        # env.add(prism)
+
+        x = np.zeros([3,steps])
+        s = trapezoidal(0,1,steps).q
+        for i in range(steps):
+            x[:,i] = x1*(1-s[i]) + s[i]*x2
+        
+        q_matrix = np.zeros([steps, 6])
+
+        q_matrix[0,:] = self.ikine_LM(T1).q
+
+        for i in range(steps-1):                     # Calculate velocity at discrete time step
+            J = self.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
+            xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
+            xdot_angular = np.zeros(3)                      # keep orientation fixed
+            xdot_full = np.hstack((xdot_linear, xdot_angular))
+            #print(xdot_full)  # 6x1
+            q_dot = np.linalg.pinv(J) @ xdot_full
+            q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
+            
+        # for q in q_matrix:
+        #     self.q = q   
+        #     S = self.fkine_path(q)    
+        #     for i in range(len(S)):     
+        #         T = ((S[i]).t)
+        #         TT = [T[0],T[1],T[2]]
+                
+        #         print(TT)
+        #         TT = np.array(TT).reshape(1, 3)   # convert to np.array and reshape
+        #         inside = box.contains(TT)
+        #         print(inside)
+
+        points = []  # collect all FK positions
+
+        for q in q_matrix:
             self.q = q
-            fig = self.plot(self.q)
-            env.step(0.02)
-        time.sleep(2)
-        # env.hold()     
+            S = self.fkine_path(q)    
+            for T in S:     
+                point = T.t 
+                points.append(point)
+            env.step(0.05) 
 
+        # Convert to NumPy array of shape (n,3)
+        points_array = np.array(points)
+        for i in range(len(points_array)):
+            print(points_array[i])
 
+        # Check which points are inside the box
+        inside_flags = box.contains(points_array)
 
+        print(inside_flags)
+
+        # Print results
+
+                
+
+            
+                # Update next joint state
+        env.hold()     
 
 if __name__ == "__main__":    
     IRB_4600().test()

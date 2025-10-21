@@ -5,17 +5,19 @@ import roboticstoolbox as rtb
 from ir_support import UR3
 from ABB_IRB_2400.IRB_2400 import IRB2400
 from IRB_4600.ABB_IRB_4600 import IRB_4600
+#from Auboi5Final.i5Init import AuboI5
 from spatialmath import SE3
 from spatialmath.base import *
 from math import pi
 import time 
-from spatialgeometry import Sphere, Arrow, Mesh
+from spatialgeometry import Sphere, Arrow, Mesh, Cuboid, Cylinder
 import spatialgeometry as geometry
 import os
 import spatialmath.base as spb
 from spatialmath import SE3
 import numpy as np
 import threading
+from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHRobotPlot
 
 
 
@@ -23,6 +25,10 @@ class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
+<<<<<<< HEAD
+=======
+        self.robot_test = None   # Robot I am using to temporaly test the GUI
+>>>>>>> main
         self.robot1 = UR3()         # Robot performing sauce application
         self.robot2 = None        # Robot performing topping placement
         self.robot3 = IRB_4600()        # Robot handling oven loading/unloading
@@ -52,6 +58,12 @@ class World:
         self.pos3 = SE3(8.7, 3.6, 1.015)
         self.pos = 1
         self.sauce_placed = False
+<<<<<<< HEAD
+=======
+        self.collision_opacity = 0.001
+        self.xp = 7.5
+        self.yp = 6.5
+>>>>>>> main
         
 
     
@@ -83,34 +95,60 @@ class World:
             Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.3.stl"),
                        color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_One)
+            converyer_collision1 = Cuboid(scale=[1, 1.2, 1.5], base=SE3(3.5, 3.6, 0.75), color=(1.0,1.0,1.0,self.collision_opacity))
+            self.env.add(converyer_collision1)
+            converyer_collision2 = Cuboid(scale=[5, 0.4, 1], base=SE3(6.5, 3.6, 0.5), color=(1.0,1.0,1.0,self.collision_opacity))
+            self.env.add(converyer_collision2)
 
             Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
                         color=(0.588, 0.294, 0.0))
             self.env.add(Table)
+            table_collision = Cuboid(scale=[1, 1.5, 1], base=SE3(7.5, 6.4935, 0.475905), color=(1,1,1,self.collision_opacity))
+            self.env.add(table_collision)
 
             Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
                         color=(0.886,0.447,0.357,1.0))
             self.env.add(Pizza_Oven)
+            pizza_oven_collision = Cylinder(radius=1.5, length=1, base=SE3(11.983, 7.8631, 0.5), color=(1,1,1,self.collision_opacity))
+            self.env.add(pizza_oven_collision)
 
             Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
                         color=(0.1,0.1,0.1,1.0))
             self.env.add(Light_Fence_Post)
+            light_fence_collision = Cuboid(scale=[4.22, 0.05, 3], base=SE3(5.21, 4.75, 1.5), color=(1,1,1,0.5))
+            self.env.add(light_fence_collision)
+
             #DYALN
             Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(5.8486, 6.4944, 0), scale=[1,1,0.5])
             self.env.add(Pillar_1)
+            pillar1_collision = Cylinder(radius=0.2, length=0.5, base=SE3(5.8486, 6.4944, 0.25), color=(1,1,1,self.collision_opacity))
+            self.env.add(pillar1_collision)
+
             #AIDAN
             Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(9.72, 5.6, 0), scale=[1,1,0.5])
             self.env.add(Pillar_2)
+            pillar2_collision = Cylinder(radius=0.2, length=0.5, base=SE3(9.72, 5.6, 0.25), color=(1,1,1,self.collision_opacity))
+            self.env.add(pillar2_collision)
+
             #UR3
             Pillar_3 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(4.6, 4.05, 0))
             self.env.add(Pillar_3)
+            pillar3_collision = Cylinder(radius=0.2, length=1.0, base=SE3(4.6, 4.05, 0.5), color=(1,1,1,self.collision_opacity))
+            self.env.add(pillar3_collision)
+
             #AKAAL
             Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
+            pillar4_collision = Cylinder(radius=0.2, length=1.0, base=SE3(6.52, 4.4, 0.5), color=(1,1,1,self.collision_opacity))
+            self.env.add(pillar4_collision)
+
+            Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Toppings_Table2.stl"),
+                        color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
+            self.env.add(Toppings_Table)
             
             self.plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
@@ -119,13 +157,74 @@ class World:
             self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
             self.env.add(self.plate2)
+<<<<<<< HEAD
+=======
+
+            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
+                          #pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), 
+                          #pose = SE3(7.5, 6.5, 0.475905*2),
+                          pose = SE3(self.xp, self.yp, (0.475905*2)),
+                          color=(0.90, 0.83, 0.70))
+            self.env.add(self.pizza)
+
+            self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
+                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0075), 
+                              color=(0.698, 0.133, 0.133))
+            self.env.add(self.sauce)
+
+            self.cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese.stl"),
+                               pose = SE3(self.xp, self.yp, 1.0125),
+                               color=(1.0, 0.78, 0.24))
+
+            self.olives = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives.stl"), 
+                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+                              pose = SE3(self.xp, self.yp, (0.475905*2) +0.0125), 
+                              color=(0.20, 0.20, 0.20))
+            self.env.add(self.olives)
+
+            self.ham = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Ham.stl"), 
+                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+                              color=(1.0, 0.71, 0.76))
+            self.env.add(self.ham)
+
+            self.pepperoni = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni.stl"), 
+                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+                              color=(0.71, 0.20, 0.14))
+            self.env.add(self.pepperoni)
+
+            self.pineapple = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple.stl"), 
+                              #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
+                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+                              color=(1.0, 0.90, 0.39))
+            self.env.add(self.pineapple)
+            
+            self.melted_cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Melted_Cheese.stl"), 
+                              pose = SE3(self.xp, self.yp ,(0.475905*2)+0.01241), color=(1.0, 0.78, 0.25))
+            self.env.add(self.melted_cheese)
+
+            self.box = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Box.stl"),
+                                pose = SE3(self.xp, self.yp, 0.95181), 
+                                color=(1.0, 1.0, 1.0))
+            self.env.add(self.box)
+
+            self.motorbike = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Honda Hornet STL.stl"),
+                                pose = SE3(3, 8.0, 0.0).A @ spb.trotz(pi),
+                                color=(0.8,0.8,0.8))
+            self.env.add(self.motorbike)
+>>>>>>> main
 
             # self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
             #               pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
             # self.env.add(self.pizza)
 
+<<<<<<< HEAD
             # self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
             #                   pose = SE3(0,0,0), color=(0.698, 0.133, 0.133))
+=======
+>>>>>>> main
 
 
             print(self.plates)
@@ -146,6 +245,12 @@ class World:
         # self.env.add(self.robot_test)
         self.robot1.base = SE3(4.6,4.05,1.0)
         self.robot1.add_to_env(self.env)
+<<<<<<< HEAD
+=======
+
+        # self.robot2.base = SE3(6.52,4.4,1.0)
+        # self.robot2.add_to_env(self.env)
+>>>>>>> main
         
         self.robot3.base = SE3(9.72,5.6,0.5)
         self.robot3.add_to_env(self.env)
@@ -153,6 +258,13 @@ class World:
         self.robot4.base = SE3(5.84, 6.49, 0.5)
         self.robot4.add_to_env(self.env)
         
+<<<<<<< HEAD
+=======
+        cyl_collision = CylindricalDHRobotPlot(self.robot3, cylinder_radius=0.05,color=(1,0,0,1))
+        self.collisions = cyl_collision.create_cylinders()
+        self.env.add(self.collisions)
+        
+>>>>>>> main
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
@@ -227,6 +339,63 @@ class World:
                 self.last_time_pizza = self.t
             self.conveyorBelt_Movement(plate1=self.plate,plate2=self.plate2,direction=1,period=0.25)
             
+<<<<<<< HEAD
+=======
+    
+    def pizza_timing(self, pause_1, pause_2):
+        self.t = float(self.env.sim_time)
+        match self.pos:
+            case 1:
+                self.t = float(self.env.sim_time)
+                self.last_pizza_time = float(self.env.sim_time) 
+                self.pizza_movement(pos=self.pos1,period=0.25)
+                if np.allclose((self.pizza.T), (SE3(self.pos1).A)):
+                    self.pos = 2
+
+            case 2:
+                self.t = float(self.env.sim_time)
+                if self.t - self.last_pizza_time >= pause_1:
+                    self.pizza_movement(pos=self.pos2,period=0.25)
+                if np.allclose((self.pizza.T), (SE3(self.pos2).A)):
+                    self.last_pizza_time = float(self.env.sim_time)
+                    self.pos = 3
+                    
+            case 3:
+                self.t = float(self.env.sim_time)
+                if self.t - self.last_pizza_time >= pause_2:
+                    self.pizza_movement(pos=self.pos3,period=0.25)
+
+    def sauce_placement(self):
+        if np.allclose((self.pizza.T), (SE3(self.pos1).A)):
+            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A
+            self.env.add(self.sauce)
+            self.sauce_placed = True
+
+    def sauce_movement(self):
+        if self.sauce_placed == True:
+            self.sauce.T = self.pizza.T @ SE3(0,0,0.0075).A
+        
+            
+
+            
+
+
+
+                
+                
+            
+
+
+
+
+
+        
+
+        
+
+
+
+>>>>>>> main
     
     def pizza_timing(self, pause_1, pause_2):
         self.t = float(self.env.sim_time)
