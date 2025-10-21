@@ -248,15 +248,15 @@ class Run:
         """Handles which operations are occuring at the time"""
         match self.pizza_stage:
             case PS.FIRST_MOVE:
-                self.pizza_stage_clock_helper(PS.ROBOT_1    , 55)
+                self.pizza_stage_clock_helper(PS.ROBOT_1    , 22) # 55 when period was 5
             case PS.ROBOT_1:
-                self.pizza_stage_clock_helper(PS.SECOND_MOVE, 200)
+                self.pizza_stage_clock_helper(PS.SECOND_MOVE, 81)
             case PS.SECOND_MOVE: 
-                self.pizza_stage_clock_helper(PS.ROBOT_2    , 95)
+                self.pizza_stage_clock_helper(PS.ROBOT_2    , 38) # 95
             case PS.ROBOT_2: 
-                self.pizza_stage_clock_helper(PS.THIRD_MOVE , 290)
+                self.pizza_stage_clock_helper(PS.THIRD_MOVE , 240)
             case PS.THIRD_MOVE: 
-                self.pizza_stage_clock_helper(PS.ROBOT_3    , 115)
+                self.pizza_stage_clock_helper(PS.ROBOT_3    , 46) # 115
             case PS.ROBOT_3: 
                 self.pizza_stage_clock_helper(PS.ROBOT_4    , 80)
             case PS.ROBOT_4: 
@@ -309,8 +309,8 @@ class Run:
             
             # Anamates the conveyerbelt & moves pizza
             elif self.pizza_stage == PS.FIRST_MOVE or PS.SECOND_MOVE or PS.THIRD_MOVE:
-                self.conveyorBelt_step(period=5)
-                self.pizza.move_by(SE3.Tx(0.1/5))
+                self.conveyorBelt_step(period=2)
+                self.pizza.move_by(SE3.Tx(0.1/2))
                 
             elif self.pizza_stage == PS.MOTORCYCLE:
                 pass
