@@ -301,8 +301,34 @@ class Run:
                     self.sauce.set_local_to_parent(SE3(0, 0, 0.0075))
                     self.sauce.add_to_world()
             elif self.pizza_stage == PS.ROBOT_2:
-                fkine_result, self.world.robot2.q = self.joint_dict.get("Robot 2 Movment")[self.OPERATION_Counter]
-                # within particular ranges of self.OPERATION_Counter use fkine_result to attach particular toppins to the end effector to place and attach to the pizza
+                fkine_result, q_traj = self.joint_dict.get("Robot 2 Movment")
+                self.world.robot2.q = q_traj[self.OPERATION_Counter]
+                
+                if 30 <= self.OPERATION_Counter <= 50: # olives
+                    self.olives.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 50:
+                        self.olives.attach_to(self.pizza)
+                        
+                elif 70 <= self.OPERATION_Counter <= 90: # ham
+                    self.ham.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 90:
+                        self.ham.attach_to(self.pizza)
+                        
+                elif 110 <= self.OPERATION_Counter <= 130: # pepperoni
+                    self.pepperoni.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 130:
+                        self.pepperoni.attach_to(self.pizza)
+                        
+                elif 150 <= self.OPERATION_Counter <= 170: # pineapple
+                    self.pineapple.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 170:
+                        self.pineapple.attach_to(self.pizza)
+                        
+                elif 190 <= self.OPERATION_Counter <= 210: # cheese
+                    self.cheese.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 210:
+                        self.cheese.attach_to(self.pizza)
+                        
             elif self.pizza_stage == PS.ROBOT_3:
                 self.world.robot3.q = self.joint_dict.get("Robot 3 Movment")[self.OPERATION_Counter]
             elif self.pizza_stage == PS.ROBOT_4:

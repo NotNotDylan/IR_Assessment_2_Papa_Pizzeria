@@ -220,20 +220,20 @@ class Robot2Movement(MovementCalculation):
         
         
         # Joint anges at each step
-        q_step1    = self.robot.q  # initial configuration
-        q_step2    = self.inverse_kinematics(SE3(olives_cord[0]    + 0.00, olives_cord[1]    + 0.00, olives_cord[2]    + 0.1 + 0.02 ) @ SE3.Ry(np.pi), q_step1  )
-        q_step2_1  = self.inverse_kinematics(SE3(6.52, 3.8, 1.4) @ SE3.Ry(np.pi), q_step2)
+        q_step1    = self.robot.q  # initial configuration                                                                    
+        q_step2    = self.inverse_kinematics(SE3(olives_cord[0]    + 0.00, olives_cord[1]    + 0.00, olives_cord[2]    + 0.1 + 0.025 ) @ SE3.Ry(np.pi), q_step1  )
+        q_step2_1  = self.inverse_kinematics(SE3(6.52, 3.8, 1.4) @ SE3.Ry(np.pi), q_step2)                                
         q_step3    = self.inverse_kinematics(SE3(pizza_cord[0]     + 0.00, pizza_cord[1]     + 0.00, pizza_cord[2]     + 0.1 + 0.015) @ SE3.Ry(np.pi), q_step2  ) 
-        q_step3_1  = q_step2_1
-        q_step4    = self.inverse_kinematics(SE3(ham_cord[0]       + 0.00, ham_cord[1]       + 0.00, ham_cord[2]       + 0.1 + 0.02 ) @ SE3.Ry(np.pi), q_step2_1) 
+        q_step3_1  = q_step2_1                                                                                                 
+        q_step4    = self.inverse_kinematics(SE3(ham_cord[0]       + 0.00, ham_cord[1]       + 0.00, ham_cord[2]       + 0.1 + 0.015 ) @ SE3.Ry(np.pi), q_step2_1) 
         q_step4_1  = q_step2_1
-        q_step5    = self.inverse_kinematics(SE3(pizza_cord[0]     + 0.00, pizza_cord[1]     + 0.00, pizza_cord[2]     + 0.1 + 0.00 ) @ SE3.Ry(np.pi), q_step2_1)
+        q_step5    = self.inverse_kinematics(SE3(pizza_cord[0]     + 0.00, pizza_cord[1]     + 0.00, pizza_cord[2]     + 0.1 + 0.015 ) @ SE3.Ry(np.pi), q_step2_1)
         q_step5_1  = q_step2_1
         q_step6    = self.inverse_kinematics(SE3(pepperoni_cord[0] + 0.00, pepperoni_cord[1] + 0.00, pepperoni_cord[2] + 0.1 + 0.02 ) @ SE3.Ry(np.pi), q_step2_1) 
         q_step6_1  = q_step2_1
         q_step7    = q_step5
-        q_step7_1  = q_step2_1
-        q_step8    = self.inverse_kinematics(SE3(pineapple_cord[0] + 0.00, pineapple_cord[1] + 0.00, pineapple_cord[2] + 0.1 + 0.015) @ SE3.Ry(np.pi), q_step2_1) 
+        q_step7_1  = q_step2_1                                                                                                
+        q_step8    = self.inverse_kinematics(SE3(pineapple_cord[0] + 0.00, pineapple_cord[1] + 0.00, pineapple_cord[2] + 0.1 + 0.026) @ SE3.Ry(np.pi), q_step2_1) 
         q_step8_1  = q_step2_1
         q_step9    = q_step5
         q_step9_1  = q_step2_1
@@ -288,7 +288,7 @@ class Robot2Movement(MovementCalculation):
             q_traj11 
         ], axis=0)
         
-        fkine_result = [self.robot.fkine(q) for q in q_traj_final]
+        fkine_result = [self.robot.fkine(q) @ SE3.Tz(0.1) for q in q_traj_final]
         
         return fkine_result, q_traj_final # (30*2)+(10*18) = 240 steps
 
