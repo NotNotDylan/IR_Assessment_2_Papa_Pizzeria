@@ -191,19 +191,21 @@ class IRB_4600(DHRobot3D):
             self.q = q
             S = self.fkine_path(q)    
             for T in S:     
-                point = T.t 
+                point = T.t
                 points.append(point)
             env.step(0.05) 
 
         # Convert to NumPy array of shape (n,3)
         points_array = np.array(points)
         for i in range(len(points_array)):
-            print(points_array[i])
+            if -2 <= points_array[i][0] <= 2:
+                if -2 <= points_array[i][1] <= 2:
+                    if 0 <= points_array[i][2] <= 5:
+                        print("COLLISION at", points_array[i])
+
 
         # Check which points are inside the box
-        inside_flags = box.contains(points_array)
-
-        print(inside_flags)
+        
 
         # Print results
 

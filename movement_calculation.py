@@ -62,6 +62,9 @@ class MovementCalculation:
         """Placeholder update method to be overridden by subclasses. Computes next motion based on system state."""
         pass  # To be implemented in each subclass
 
+    def find_max_mins():
+        meshes = np.zeros([9,6])
+
 
 class Robot1Movement(MovementCalculation):
     """Controls Robot 1 (Sauce application robot) movements and task execution."""

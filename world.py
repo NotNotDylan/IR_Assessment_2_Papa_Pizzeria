@@ -55,9 +55,10 @@ class World:
         self.pos3 = SE3(8.7, 3.6, 1.015)
         self.pos = 1
         self.sauce_placed = False
-        self.collision_opacity = 0.001
+        self.collision_opacity = 0.5
         self.xp = 7.5
         self.yp = 6.5
+        self.meshes = []
         
 
     
@@ -89,58 +90,71 @@ class World:
             self.env.add(Conveyer_One)
             converyer_collision1 = Cuboid(scale=[1, 1.2, 1.5], base=SE3(3.5, 3.6, 0.75), color=(1.0,1.0,1.0,self.collision_opacity))
             self.env.add(converyer_collision1)
+            self.meshes.append(converyer_collision1)
+
             converyer_collision2 = Cuboid(scale=[5, 0.4, 1], base=SE3(6.5, 3.6, 0.5), color=(1.0,1.0,1.0,self.collision_opacity))
             self.env.add(converyer_collision2)
+            self.meshes.append(converyer_collision2)
 
             Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
                         color=(0.588, 0.294, 0.0))
             self.env.add(Table)
             table_collision = Cuboid(scale=[1, 1.5, 1], base=SE3(7.5, 6.4935, 0.475905), color=(1,1,1,self.collision_opacity))
             self.env.add(table_collision)
+            self.meshes.append(table_collision)
 
             Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
                         color=(0.886,0.447,0.357,1.0))
             self.env.add(Pizza_Oven)
-            pizza_oven_collision = Cylinder(radius=1.5, length=1, base=SE3(11.983, 7.8631, 0.5), color=(1,1,1,self.collision_opacity))
+            pizza_oven_collision = Cuboid(scale=[3,3,1], base=SE3(11.983, 7.8631, 0.5), color=(1,1,1,self.collision_opacity))
             self.env.add(pizza_oven_collision)
+            self.meshes.append(pizza_oven_collision)
 
             Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
                         color=(0.1,0.1,0.1,1.0))
             self.env.add(Light_Fence_Post)
             light_fence_collision = Cuboid(scale=[4.22, 0.05, 3], base=SE3(5.21, 4.75, 1.5), color=(1,1,1,0.5))
             self.env.add(light_fence_collision)
+            self.meshes.append(light_fence_collision)
 
             #DYALN
             Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(5.8486, 6.4944, 0), scale=[1,1,0.5])
             self.env.add(Pillar_1)
-            pillar1_collision = Cylinder(radius=0.2, length=0.5, base=SE3(5.8486, 6.4944, 0.25), color=(1,1,1,self.collision_opacity))
+            pillar1_collision = Cuboid(scale=[0.4,0.4,0.5], base=SE3(5.8486, 6.4944, 0.25), color=(1,1,1,self.collision_opacity))
             self.env.add(pillar1_collision)
+            self.meshes.append(pillar1_collision)
 
             #AIDAN
             Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(9.72, 5.6, 0), scale=[1,1,0.5])
             self.env.add(Pillar_2)
-            pillar2_collision = Cylinder(radius=0.2, length=0.5, base=SE3(9.72, 5.6, 0.25), color=(1,1,1,self.collision_opacity))
+            pillar2_collision = Cuboid(scale=[0.4,0.4,0.5], base=SE3(9.72, 5.6, 0.25), color=(1,1,1,self.collision_opacity))
             self.env.add(pillar2_collision)
+            self.meshes.append(pillar2_collision)
 
             #UR3
             Pillar_3 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(4.6, 4.05, 0))
             self.env.add(Pillar_3)
-            pillar3_collision = Cylinder(radius=0.2, length=1.0, base=SE3(4.6, 4.05, 0.5), color=(1,1,1,self.collision_opacity))
+            pillar3_collision = Cuboid(scale=[0.4,0.4,1], base=SE3(4.6, 4.05, 0.5), color=(1,1,1,self.collision_opacity))
             self.env.add(pillar3_collision)
+            self.meshes.append(pillar3_collision)
 
             #AKAAL
             Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
-            pillar4_collision = Cylinder(radius=0.2, length=1.0, base=SE3(6.52, 4.4, 0.5), color=(1,1,1,self.collision_opacity))
+            pillar4_collision = Cuboid(scale=[0.4,0.4,1], base=SE3(6.52, 4.4, 0.5), color=(1,1,1,self.collision_opacity))
             self.env.add(pillar4_collision)
+            self.meshes.append(pillar4_collision)
 
             Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Toppings_Table2.stl"),
                         color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
             self.env.add(Toppings_Table)
+            toppings_collision = Cuboid(scale=[1,0.25,1], base=SE3(6.5, 4, 0.5), color=(1,1,1,self.collision_opacity))
+            self.env.add(toppings_collision)
+            self.meshes.append(toppings_collision)
             
             self.plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
