@@ -14,6 +14,23 @@ class MovementCalculation:
         self.target_joint_positions = None  # For planned joint trajectory or target position
         self.current_task = None   # Description of current task (if any)
         self.collision_avoided = False  # Flag if we had to adjust for collision in last step
+        
+        self.bounds_array = np.array([
+            [3.0, 4.0, 3.0, 4.2, 0.0, 1.5],
+            [4.0, 9.0, 3.4, 3.8, 0.0, 1.0],
+            [7.0, 8.0, 5.7435, 7.2435, -0.024095, 0.975905],
+            [10.483, 13.483, 6.3631, 9.3631, 0.0, 1.0],
+            [3.10, 7.32, 4.725, 4.775, 0.0, 3.0],
+            [5.6486, 6.0486, 6.2944, 6.6944, 0.0, 0.5],
+            [9.52, 9.92, 5.4, 5.8, 0.0, 0.5],
+            [4.4, 4.8, 3.85, 4.25, 0.0, 1.0],
+            [6.32, 6.72, 4.2, 4.6, 0.0, 1.0],
+            [6.0, 7.0, 3.875, 4.125, 0.0, 1.0]
+        ])
+        
+    def get_ObjectNode(self, object: ObjectNode):
+        """Only stores the most recently called one"""
+        self.object = object
     
     def forward_kinematics(self, q=None):
         """Return the end-effector pose (SE3) for given joint angles q. If q not provided, uses robot's current q."""
@@ -45,18 +62,29 @@ class MovementCalculation:
         
         return sol.q
 
-    def collision_detected(self, point, array=None):
-        for i in array:
-            if array[i][0] <= point[0] <= array[i][1]:
-                if array[i][2] <= point[1] <= array[i][3]:
-                    if array[i][4] <= point[2] <= array[i][5]:
-                        return True
-                    
-    def RMRC(self, inital_pos: SE3, next_pos: SE3):
-        self._tool = None
+    # def collision_detected(self, point):
+    #     array = self.bounds_array
         
-        q = inital_pos
-        T1 = self.robot.fkine(q)
+    #     for i in array:
+    #         if array[i][0] <= point[0] <= array[i][1]:
+    #             if array[i][2] <= point[1] <= array[i][3]:
+    #                 if array[i][4] <= point[2] <= array[i][5]:
+    #                     return True
+    
+    def collision_detected(self, point):
+        bounds = self.bounds_array  # don't shadow "array"
+        x, y, z = float(point[0]), float(point[1]), float(point[2])
+
+        for box in bounds:  # box = [xmin, xmax, ymin, ymax, zmin, zmax]
+            if box[0] <= x <= box[1] and box[2] <= y <= box[3] and box[4] <= z <= box[5]:
+                return True
+        return False
+                    
+    def RMRC(self, inital_pos: SE3, next_pos: SE3, steps: int):
+        # self._tool = None    
+        self.robot.tool = self.robot.tool if isinstance(self.robot.tool, SE3) else SE3()  # ensure SE3     
+        
+        T1 = inital_pos
         x1 = T1.t
 
         T2 = next_pos
@@ -65,15 +93,14 @@ class MovementCalculation:
         roll, pitch, yaw = next_pos.rpy(unit="rad", order="zyx")
 
         delta_t = 0.05
-        steps = 100
 
         x = np.zeros([3,steps])
         s = trapezoidal(0,1,steps).q
 
-        for tryes in range(steps):
+        for i in range(steps):
             x[:,i] = x1*(1-s[i]) + s[i]*x2
 
-        for i in range(20):
+        for tryes in range(6):
             q_matrix = np.zeros([steps, 6])
 
             q_matrix[0,:] = self.robot.ikine_LM(T1).q
@@ -82,7 +109,7 @@ class MovementCalculation:
             for i in range(steps-1):                     # Calculate velocity at discrete time step
                 J = self.robot.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
                 xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
-                xdot_angular = np.array(roll/(steps*delta_t), pitch/(steps*delta_t), yaw/(steps*delta_t))                # keep orientation fixed
+                xdot_angular = np.array([roll/(steps*delta_t), pitch/(steps*delta_t), yaw/(steps*delta_t)])                # keep orientation fixed
                 xdot_full = np.hstack((xdot_linear, xdot_angular))
                 q_dot = np.linalg.pinv(J) @ xdot_full
                 q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
@@ -91,7 +118,8 @@ class MovementCalculation:
 
             # Find's each joint position in the arm relative to world
             for q in q_matrix:
-                S = self.robot.fkine_path(q)   
+                # S = self.robot.fkine_path(q)
+                S = self.robot.fkine_all(q)   
                 for T in S:     
                     point = T.t
                     points.append(point)
@@ -101,11 +129,10 @@ class MovementCalculation:
                 if self.collision_detected(point=points[i]) == False:
                     break
 
-            if tryes == 19:
-                print("RMRC failed to find trajectory in 20 tries")
+            if tryes == 5:
+                print("RMRC failed to find trajectory in 6 tries")
         
-        for q in q_matrix:
-            self.q = q
+        return q_matrix
             
 
 class Robot1Movement(MovementCalculation):
@@ -120,11 +147,15 @@ class Robot1Movement(MovementCalculation):
         Circle above pizza (Three points untill RMRC)
         Zero position
         """
+        
+        pizza_cord = self.object.xyz_of_node()
+        
+        # Old method
         # Joint anges at each step
         q_step1 = self.robot.q  # initial configuration
-        q_step2 = self.inverse_kinematics(SE3(4.6 + 0.00, 3.6 + 0.12, 1.015) @ SE3.Ry(np.pi), q_step1)  # Three points of a triangle (circle)
-        q_step3 = self.inverse_kinematics(SE3(4.6 - 0.10, 3.6 - 0.06, 1.015) @ SE3.Ry(np.pi), q_step2)
-        q_step4 = self.inverse_kinematics(SE3(4.6 + 0.10, 3.6 - 0.06, 1.015) @ SE3.Ry(np.pi), q_step3)
+        q_step2 = self.inverse_kinematics(SE3(pizza_cord[0] + 0.00, pizza_cord[1] + 0.12, pizza_cord[2] + 0.03) @ SE3.Ry(np.pi), q_step1)  # Three points of a triangle (circle)
+        q_step3 = self.inverse_kinematics(SE3(pizza_cord[0] - 0.10, pizza_cord[1] - 0.06, pizza_cord[2] + 0.03) @ SE3.Ry(np.pi), q_step2)
+        q_step4 = self.inverse_kinematics(SE3(pizza_cord[0] + 0.10, pizza_cord[1] - 0.06, pizza_cord[2] + 0.03) @ SE3.Ry(np.pi), q_step3)
         q_step5 = q_step2 # This step completes the circle
         q_step6 = q_step1
         
@@ -134,6 +165,21 @@ class Robot1Movement(MovementCalculation):
         q_traj3 = rtb.jtraj(q_step3, q_step4, 20).q
         q_traj4 = rtb.jtraj(q_step4, q_step5, 20).q
         q_traj5 = rtb.jtraj(q_step5, q_step6, 70).q
+        
+        # # SE3 end effector at each location for each step       
+        # se3_step1 = self.forward_kinematics()  # initial SE3 configuration
+        # se3_step2 = SE3(pizza_cord[0] + 0.00, pizza_cord[1] + 0.12, pizza_cord[2] + 0.03) # @ SE3.Ry(np.pi)
+        # se3_step3 = SE3(pizza_cord[0] - 0.10, pizza_cord[1] - 0.06, pizza_cord[2] + 0.03) # @ SE3.Ry(np.pi)
+        # se3_step4 = SE3(pizza_cord[0] + 0.10, pizza_cord[1] - 0.06, pizza_cord[2] + 0.03) # @ SE3.Ry(np.pi)
+        # se3_step5 = se3_step2 # This step completes the circle/triangle
+        # se3_step6 = se3_step1
+        
+        # # Calculate trajectories
+        # q_traj1 = self.RMRC(se3_step1, se3_step2, 70)
+        # q_traj2 = self.RMRC(se3_step2, se3_step3, 20)
+        # q_traj3 = self.RMRC(se3_step3, se3_step4, 20)
+        # q_traj4 = self.RMRC(se3_step4, se3_step5, 20)
+        # q_traj5 = self.RMRC(se3_step5, se3_step6, 70)
         
         # Join togther trajectories
         q_traj_final = np.concatenate([q_traj1, q_traj2, q_traj3, q_traj4, q_traj5], axis=0)

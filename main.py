@@ -37,7 +37,7 @@ def main():
     """Main entry point: Initialize world, robots, GUI, and run the simulation."""
     # Initialize simulation world and environment
     world = World()
-    world.launch(environment_objects=True)  # Launch Swift simulator and load environment objects
+    world.launch(environment_objects=False)  # Launch Swift simulator and load environment objects
     world.setup_robots_and_objects()
     
     # Initialize GUI and safety systems

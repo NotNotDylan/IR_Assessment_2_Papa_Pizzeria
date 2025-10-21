@@ -83,6 +83,15 @@ class ObjectNode:
             self.mesh.T = new_pose
         except Exception:
             self.mesh.T = new_pose.A
+    
+    def xyz_of_node(self):
+        """Return the node's Cartesian position.
+
+        Returns:
+            numpy.ndarray | tuple[float, float, float]: The translation in (x, y, z) order.
+                If a NumPy array, it is a length-3 vector with shape (3,).
+        """
+        return self.pose.t
 
     # ----------- Core operations -----------
     def set_pose(self, new_pose: SE3, propagate: bool = True) -> None:
@@ -182,11 +191,6 @@ class ObjectNode:
 
     def __repr__(self) -> str:
         return f"ObjectNode(name={self.name!r}, children={len(self.children)}, attached={self.parent is not None})"
-
-
-# Backwards-compatible alias for existing code
-ObjectNode
-
 
 
 if __name__ == "__main__":  # I sugest that you pause and zoom out alot to actualy see this test

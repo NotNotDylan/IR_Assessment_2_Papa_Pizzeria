@@ -84,6 +84,7 @@ class Run:
         if self.last_stage != self.pizza_stage:
             match self.pizza_stage:
                 case PS.ROBOT_1:
+                    self.robot1_motion.get_ObjectNode(self.pizza)
                     self.joint_dict["Robot 1 Movment"] = self.robot1_motion.calculate()
                 case PS.ROBOT_2:
                     self.joint_dict["Robot 2 Movment"] = self.robot2_motion.calculate()

@@ -68,6 +68,23 @@ class World:
         
         self.env.set_camera_pose([8, 14, 7], [8, 3, 0])
         
+        # --Important meshes--
+        Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
+                    color=(0.588, 0.294, 0.0))
+        self.env.add(Table)
+        
+        Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
+                    color=(0.886,0.447,0.357,1.0))
+        self.env.add(Pizza_Oven)
+        
+        self.plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+                        pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
+        self.env.add(self.plate1)
+
+        self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+                        pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
+        self.env.add(self.plate2)
+        
         
         if environment_objects == True:
             # Walls
@@ -83,13 +100,13 @@ class World:
                        color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_One)
 
-            Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
-                        color=(0.588, 0.294, 0.0))
-            self.env.add(Table)
+            # Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
+            #             color=(0.588, 0.294, 0.0))
+            # self.env.add(Table)
             
-            Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
-                        color=(0.886,0.447,0.357,1.0))
-            self.env.add(Pizza_Oven)
+            # Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
+            #             color=(0.886,0.447,0.357,1.0))
+            # self.env.add(Pizza_Oven)
 
             Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
                         color=(0.1,0.1,0.1,1.0))
@@ -119,13 +136,13 @@ class World:
                         color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
             self.env.add(Toppings_Table)
             
-            self.plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
-                          pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
-            self.env.add(self.plate1)
+            # self.plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+            #               pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
+            # self.env.add(self.plate1)
 
-            self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
-                          pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
-            self.env.add(self.plate2)
+            # self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+            #               pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
+            # self.env.add(self.plate2)
             
             # Pizza
             self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
@@ -218,20 +235,20 @@ class World:
             toppings_collision = Cuboid(scale=[1,0.25,1], base=SE3(6.5, 4, 0.5), color=(1,1,1,self.collision_opacity))
             self.env.add(toppings_collision)
 
-            self.bounds_array = np.array([
-                [3.0, 4.0, 3.0, 4.2, 0.0, 1.5],
-                [4.0, 9.0, 3.4, 3.8, 0.0, 1.0],
-                [7.0, 8.0, 5.7435, 7.2435, -0.024095, 0.975905],
-                [10.483, 13.483, 6.3631, 9.3631, 0.0, 1.0],
-                [3.10, 7.32, 4.725, 4.775, 0.0, 3.0],
-                [5.6486, 6.0486, 6.2944, 6.6944, 0.0, 0.5],
-                [9.52, 9.92, 5.4, 5.8, 0.0, 0.5],
-                [4.4, 4.8, 3.85, 4.25, 0.0, 1.0],
-                [6.32, 6.72, 4.2, 4.6, 0.0, 1.0],
-                [6.0, 7.0, 3.875, 4.125, 0.0, 1.0]
-            ])
-
-            print(self.bounds_array[0][0])
+        # self.bounds_array = np.array([
+        #     [3.0, 4.0, 3.0, 4.2, 0.0, 1.5],
+        #     [4.0, 9.0, 3.4, 3.8, 0.0, 1.0],
+        #     [7.0, 8.0, 5.7435, 7.2435, -0.024095, 0.975905],
+        #     [10.483, 13.483, 6.3631, 9.3631, 0.0, 1.0],
+        #     [3.10, 7.32, 4.725, 4.775, 0.0, 3.0],
+        #     [5.6486, 6.0486, 6.2944, 6.6944, 0.0, 0.5],
+        #     [9.52, 9.92, 5.4, 5.8, 0.0, 0.5],
+        #     [4.4, 4.8, 3.85, 4.25, 0.0, 1.0],
+        #     [6.32, 6.72, 4.2, 4.6, 0.0, 1.0],
+        #     [6.0, 7.0, 3.875, 4.125, 0.0, 1.0]
+        # ])
+        #
+        # print(self.bounds_array[0][0])
     
     def setup_robots_and_objects(self):
         """Load robots, conveyors, and objects into the environment."""
