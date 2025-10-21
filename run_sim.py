@@ -53,7 +53,7 @@ class Run:
         self.state_init()
         
         # Make initial pizza base
-        self.pizza = ObjectNode(self.world.env, SE3(4.6, 3.6, 1.015), "Pizza's/Pizza_Base.stl", color=(0.90, 0.83, 0.70), name="Pizza")
+        self.pizza = ObjectNode(self.world.env, SE3(3.5, 3.6, 1.015), "Pizza's/Pizza_Base.stl", color=(0.90, 0.83, 0.70), name="Pizza")
         self.pizza.add_to_world()
         
         while self.running:
@@ -199,10 +199,12 @@ class Run:
         if self.OPERATION.is_ready() and self.Start.is_active():
             self.OPERATION.set_state(SS.RUNNING)
             self.Start.set_state(SS.DEACTIVE) 
-            self.handle_pizza_stage()
         elif self.OPERATION.is_achieved():
             self.OPERATION.set_state(SS.READY)
-            self.OPERATION_Counter = 0
+            # self.OPERATION_Counter = 0
+        
+        # internaly only itterates if operates is running
+        self.handle_pizza_stage()
         
         # Button resets
         if self.Reset.is_active():
@@ -218,7 +220,7 @@ class Run:
         """Handles which operations are occuring at the time"""
         match self.pizza_stage:
             case PS.FIRST_MOVE:
-                self.pizza_stage_clock_helper(PS.ROBOT_1    , 15)
+                self.pizza_stage_clock_helper(PS.ROBOT_1    , 55)
             case PS.ROBOT_1:
                 self.pizza_stage_clock_helper(PS.SECOND_MOVE, 200)
             case PS.SECOND_MOVE: 

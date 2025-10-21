@@ -128,7 +128,7 @@ class IRB_4600(DHRobot3D):
         env.set_camera_pose([2.5, -2.0, 1.5], [0, 0, 1.0])
         
         # Early tests that don't matter so much now
-        """
+        r"""
         q = self.q
         T1 = self.fkine(q)
         x1 = T1.t
