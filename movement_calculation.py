@@ -44,25 +44,6 @@ class MovementCalculation:
             )
         
         return sol.q
-    
-    def avoid_collisions(self, q_candidate):
-        """Collision check for a candidate joint configuration or path. 
-        Returns True if a collision is detected and avoidance action is needed."""
-        # TODO: Implement collision checking logic.
-        # You could use bounding boxes or simple distance thresholds between robot links and known obstacles (including other robots or the intruding object).
-        # If collision predicted, you might modify q_candidate or set a flag to delay motion.
-        # For now, return False (no collision) by default.
-        
-        return False
-    
-    def emergency_stop(self):
-        """Immediate stop: can be called to halt the robot. Could set target to current position (no motion)."""
-        # Simple implementation: just set target to current to freeze movement.
-        self.target_joint_positions = self.robot.q
-    
-    def update(self):
-        """Placeholder update method to be overridden by subclasses. Computes next motion based on system state."""
-        pass  # To be implemented in each subclass
 
     def collision_detected(self, point, array=None):
         for i in array:
@@ -71,10 +52,10 @@ class MovementCalculation:
                     if array[i][4] <= point[2] <= array[i][5]:
                         return True
                     
-    def RMRC(self, next_pos):
+    def RMRC(self, inital_pos: SE3, next_pos: SE3):
         self._tool = None
         
-        q = self.robot.q
+        q = inital_pos
         T1 = self.robot.fkine(q)
         x1 = T1.t
 
