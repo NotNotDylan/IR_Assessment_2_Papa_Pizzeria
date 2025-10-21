@@ -25,10 +25,6 @@ class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
-<<<<<<< HEAD
-=======
-        self.robot_test = None   # Robot I am using to temporaly test the GUI
->>>>>>> main
         self.robot1 = UR3()         # Robot performing sauce application
         self.robot2 = None        # Robot performing topping placement
         self.robot3 = IRB_4600()        # Robot handling oven loading/unloading
@@ -58,12 +54,9 @@ class World:
         self.pos3 = SE3(8.7, 3.6, 1.015)
         self.pos = 1
         self.sauce_placed = False
-<<<<<<< HEAD
-=======
         self.collision_opacity = 0.001
         self.xp = 7.5
         self.yp = 6.5
->>>>>>> main
         
 
     
@@ -157,9 +150,8 @@ class World:
             self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
                           pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
             self.env.add(self.plate2)
-<<<<<<< HEAD
-=======
-
+            
+            # Pizza
             self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
                           #pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), 
                           #pose = SE3(7.5, 6.5, 0.475905*2),
@@ -214,17 +206,11 @@ class World:
                                 pose = SE3(3, 8.0, 0.0).A @ spb.trotz(pi),
                                 color=(0.8,0.8,0.8))
             self.env.add(self.motorbike)
->>>>>>> main
 
             # self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
             #               pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
             # self.env.add(self.pizza)
 
-<<<<<<< HEAD
-            # self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
-            #                   pose = SE3(0,0,0), color=(0.698, 0.133, 0.133))
-=======
->>>>>>> main
 
 
             print(self.plates)
@@ -245,26 +231,20 @@ class World:
         # self.env.add(self.robot_test)
         self.robot1.base = SE3(4.6,4.05,1.0)
         self.robot1.add_to_env(self.env)
-<<<<<<< HEAD
-=======
 
         # self.robot2.base = SE3(6.52,4.4,1.0)
         # self.robot2.add_to_env(self.env)
->>>>>>> main
         
         self.robot3.base = SE3(9.72,5.6,0.5)
         self.robot3.add_to_env(self.env)
 
         self.robot4.base = SE3(5.84, 6.49, 0.5)
         self.robot4.add_to_env(self.env)
-        
-<<<<<<< HEAD
-=======
+
         cyl_collision = CylindricalDHRobotPlot(self.robot3, cylinder_radius=0.05,color=(1,0,0,1))
         self.collisions = cyl_collision.create_cylinders()
         self.env.add(self.collisions)
         
->>>>>>> main
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
@@ -338,9 +318,6 @@ class World:
                 self.sauce_movement()
                 self.last_time_pizza = self.t
             self.conveyorBelt_Movement(plate1=self.plate,plate2=self.plate2,direction=1,period=0.25)
-            
-<<<<<<< HEAD
-=======
     
     def pizza_timing(self, pause_1, pause_2):
         self.t = float(self.env.sim_time)
@@ -395,7 +372,6 @@ class World:
 
 
 
->>>>>>> main
     
     def pizza_timing(self, pause_1, pause_2):
         self.t = float(self.env.sim_time)
