@@ -363,7 +363,7 @@ class Run:
                 self.pizza.move_by(SE3.Tx(0.1/2))
                 
             elif self.pizza_stage == PS.MOTORCYCLE:
-                self.pizza.move_by(SE3.Tx(0.02 * self.OPERATION_Counter))
+                self.motorbike.move_by(SE3.Ty(0.02 * self.OPERATION_Counter))
             
             elif self.pizza_stage == PS.COMPLETED:
                 pass
