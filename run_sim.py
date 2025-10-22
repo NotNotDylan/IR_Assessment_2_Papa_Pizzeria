@@ -33,6 +33,7 @@ class Run:
         self.paused = False  # indicates if simulation is paused (e.g., after e-stop) # Initialize simulation time
         self.conveyerloop = 1
         self.last_stage = PS
+        self.bird_latch = True
         # Creating only one instance of the robot movment and calcuation objects
         
         self.robot1_motion = self.motions[0]
@@ -72,8 +73,6 @@ class Run:
                 
             # Step the environment to update visuals
             self.world.env.step(self.dt)
-
-            self.bird.light_screen_e_stop()
             
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)
@@ -226,6 +225,11 @@ class Run:
                     
     def handle_states(self):
         """No operation are done here only state logic"""
+        # Handle Colisions
+        if self.bird.colision_with_light_curtain():
+            self.E_Stop.set_state(SS.ACTIVE)
+            self.gui._estop_latched = True
+            self.gui.set_light_curtain(broken=True)
         
         # Hardware e-stop poll (fail-safe if link stale)
         if self.external_estop and self.external_estop.check_stop():
@@ -248,6 +252,7 @@ class Run:
             self.OPERATION.set_state(SS.READY)
             self.Reset.set_state(SS.DEACTIVE)
             self.E_Stop.set_state(SS.DEACTIVE)
+            self.gui.set_light_curtain(broken=False)
         elif self.E_Stop.is_active():
             self.OPERATION.set_state(SS.SUSPENDED)
             
@@ -297,8 +302,14 @@ class Run:
             
     def handle_actions(self):
         
+        # The bird fly
+        if self.bird_latch == False:
+            self.bird.move_by(SE3(0,0.1,0))
+        
         # Disabled if estop or paused
         if self.OPERATION.is_running():
+            
+            self.bird_latch == False
             
             # Assigning the precalculated joint angles to each of the robots
             if self.pizza_stage == PS.ROBOT_1:

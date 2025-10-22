@@ -114,13 +114,12 @@ class ObjectNode:
             raise TypeError("delta must be an SE3")
         self.set_pose(self.pose * delta, propagate=True)
 
-    def light_screen_e_stop(self):
+    def colision_with_light_curtain(self):
         x,y,z = self.xyz_of_node()
         if 3.10 <= x <= 7.32 and 4.725 <= y <= 4.85 and 0 <= z <=3:
-            print("collision")
-            self.move_by(SE3(0,0.1,0))
+            return True
         else:
-            self.move_by(SE3(0,0.1,0))
+            return False
 
 
 
