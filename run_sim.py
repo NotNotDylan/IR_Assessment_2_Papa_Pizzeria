@@ -89,7 +89,7 @@ class Run:
         self.pineapple = ObjectNode(self.world.env, SE3(7.1, 4, 1.005), "Pizza's/Pineapple.stl"   , color=(1.00, 0.90, 0.39), name="pineapple")
         self.box       = ObjectNode(self.world.env, SE3(7.5, 6.5, 1), "Pizza's/Pizza_Box2.stl"   , color=(1.0, 1.0, 1.0), name="box")
         self.motorbike = ObjectNode(self.world.env,SE3(5,8.5,0) @ SE3.Rz(pi), "Environment/Bike.stl", color=(0.8, 0.8, 0.8), name="motorbike")
-        self.bird = ObjectNode(self.world.env, SE3(5, 0, 2), "Environment/Bird.stl", color=(0.90, 0.83, 0.70), name="Pizza")
+        self.bird = ObjectNode(self.world.env, SE3(5, -4.5, 2), "Environment/Bird.stl", color=(0.90, 0.83, 0.70), name="Pizza")
         
         # Adding to the world
         self.pizza.add_to_world()
@@ -274,7 +274,7 @@ class Run:
             case PS.ROBOT_3: 
                 self.pizza_stage_clock_helper(PS.ROBOT_4    , 90)
             case PS.ROBOT_4: 
-                self.pizza_stage_clock_helper(PS.MOTORCYCLE , 40)
+                self.pizza_stage_clock_helper(PS.MOTORCYCLE , 70)
             case PS.MOTORCYCLE: 
                 self.pizza_stage_clock_helper(PS.COMPLETED  , 50)
             case PS.COMPLETED:
@@ -304,7 +304,7 @@ class Run:
         
         # The bird fly
         if self.bird_latch == False:
-            self.bird.move_by(SE3(0,0.1,0))
+            self.bird.move_by(SE3(0,0.15,0))
         
         # Disabled if estop or paused
         if self.OPERATION.is_running():
@@ -363,9 +363,9 @@ class Run:
                 fkine_result, q_traj = self.joint_dict.get("Robot 4 Movment")
                 self.world.robot4.q = q_traj[self.OPERATION_Counter]
                 
-                if 10 <= self.OPERATION_Counter <= 30:
+                if 20 <= self.OPERATION_Counter <= 50:
                     self.box.set_pose(fkine_result[self.OPERATION_Counter])
-                    if self.OPERATION_Counter == 30:
+                    if self.OPERATION_Counter == 50:
                         self.motorbike.attach_to(self.pizza)
             
             # Anamates the conveyerbelt & moves pizza
