@@ -405,7 +405,23 @@ class Robot4Movement(MovementCalculation):
         pick up pizza box
         place on motorcycle
         """
-        pass
+        q_step1 = self.robot.q
+        q_step2 = self.inverse_kinematics(SE3(7.1, 6.5, 1.0) * SE3.RPY( 1.5708, -0.7854, -1.5708, order='xyz'), q_step1)
+        q_step3 = self.inverse_kinematics(SE3(5.2, 7.2, 1.2) * SE3.RPY(-1.5708,  0.7854,  1.5708, order='xyz'), q_step2)
+        q_step4 = q_step1
+
+        q_traj1 = rtb.jtraj(q_step1, q_step2, 10).q
+        q_traj2 = rtb.jtraj(q_step2, q_step3, 20).q
+        q_traj3 = rtb.jtraj(q_step3, q_step4, 10).q
+
+        q_traj_final = np.concatenate([q_traj1, q_traj2, q_traj3], axis=0)
+        fkine_result = [self.robot.fkine(q)for q in q_traj_final]
+
+        return fkine_result, q_traj_final # (10*2) + 20 = 40 steps
+
+
+
+
     
 if __name__ == "__main__":  # I sugest that you pause and zoom out alot to actualy see this test
     

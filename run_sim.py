@@ -89,7 +89,7 @@ class Run:
         self.pepperoni = ObjectNode(self.world.env, SE3(6.8, 4, 1    ), "Pizza's/Pepperoni.stl"   , color=(0.71, 0.20, 0.14), name="pepperoni")
         self.pineapple = ObjectNode(self.world.env, SE3(7.1, 4, 1.005), "Pizza's/Pineapple.stl"   , color=(1.00, 0.90, 0.39), name="pineapple")
         self.box       = ObjectNode(self.world.env, SE3(7.5, 6.5, 1), "Pizza's/Pizza_Box2.stl"   , color=(1.0, 1.0, 1.0), name="box")
-        self.motorbike = ObjectNode(self.world.env, SE3(3.0, 8.0, 0.0) * SE3.Rz(pi), "Environment/Honda Hornet STL.stl", color=(0.8, 0.8, 0.8), name="motorbike")
+        self.motorbike = ObjectNode(self.world.env,SE3(5,8.5,0) @ SE3.Rz(pi), "Environment/Bike.stl", color=(0.8, 0.8, 0.8), name="motorbike")
         self.bird = ObjectNode(self.world.env, SE3(5, 0, 2), "Environment/Bird.stl", color=(0.90, 0.83, 0.70), name="Pizza")
         
         # Adding to the world
@@ -348,7 +348,14 @@ class Run:
                         self.pizza.attach_to(self.box)
                 
             elif self.pizza_stage == PS.ROBOT_4:
-                self.world.robot4.q = self.joint_dict.get("Robot 4 Movment")[self.OPERATION_Counter]
+
+                fkine_result, q_traj = self.joint_dict.get("Robot 4 Movment")
+                self.world.robot4.q = q_traj[self.OPERATION_Counter]
+                
+                if 15 <= self.OPERATION_Counter <= 75:
+                    self.pizza.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 75:
+                        self.pizza.attach_to(self.box)
             
             # Anamates the conveyerbelt & moves pizza
             elif self.pizza_stage == PS.FIRST_MOVE or PS.SECOND_MOVE or PS.THIRD_MOVE:

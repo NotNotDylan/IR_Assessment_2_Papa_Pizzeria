@@ -190,19 +190,6 @@ class World:
             self.env.add(self.pineapple_pile)
             
             
-            self.melted_cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Melted_Cheese.stl"), 
-                              pose = SE3(0, 0 ,(0.475905*2)+0.01241), color=(1.0, 0.78, 0.25))
-            
-
-            self.box = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Box2.stl"),
-                                pose = SE3(7.5, 6.5, 1) @ SE3.Rz(pi/2), 
-                                color=(1.0, 1.0, 1.0))
-            self.env.add(self.box)
-
-            self.motorbike = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Bike.stl"),
-                                pose =  SE3(5,8.5,0) @ SE3.Rz(pi),
-                                color=(0.8,0.8,0.8))
-            self.env.add(self.motorbike)
 
             self.button = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "e-STOP.stl"),
                                 pose =  SE3(1.75,0,1.25) @ SE3.Rz(-pi/2),
@@ -275,10 +262,6 @@ class World:
 
         self.robot2.base = SE3(6.52,4.4,1.0)
         self.robot2.add_to_env(self.env)
-        
-        T = self.robot2.fkine(self.robot2.q) 
-        print(T)
-
         
         self.robot3.base = SE3(9.72,5.6,0.5)
         self.robot3.add_to_env(self.env)
