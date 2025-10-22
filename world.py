@@ -152,12 +152,12 @@ class World:
             self.env.add(Pillar_4)
             
             # Pizza
-            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
-                          #pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), 
-                          #pose = SE3(7.5, 6.5, 0.475905*2),
-                          pose = SE3(self.pos3),
-                          color=(0.90, 0.83, 0.70))
-            self.env.add(self.pizza)
+            # self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
+            #               #pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), 
+            #               #pose = SE3(7.5, 6.5, 0.475905*2),
+            #               pose = SE3(self.pos3),
+            #               color=(0.90, 0.83, 0.70))
+            # self.env.add(self.pizza)
 
             self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
