@@ -6,6 +6,7 @@ import roboticstoolbox as rtb
 from roboticstoolbox import trapezoidal, DHRobot
 from scipy import linalg
 from numpy import pi
+import swift
 
 class MovementCalculation:
     """Base class for robot movement calculations: kinematics, path planning, and safety checks."""
@@ -305,7 +306,47 @@ class Robot3Movement(MovementCalculation):
         pick up pizza
         place in box
         """
-        pass
+        pizza_cord = self.pizza.xyz_of_node()
+        
+        # Joint anges at each step
+        q_step1 = self.robot.q  # initial configuration
+        
+        # q_step2 = self.inverse_kinematics(SE3(8.76,3.678,0.994) * SE3.RPY(1.442,-0.460,-1.628, order='xyz'), q_step1)
+        # q_step3 = self.inverse_kinematics(SE3(10.27,4.998,1.109) * SE3.RPY(1.522,0.735,-1.538, order='xyz'), q_step2)
+        # q_step4 = self.inverse_kinematics(SE3(10.36,6.206,1.663) * SE3.RPY(-1.475,0.842,1.585, order='xyz'), q_step3)
+        # q_step5 = self.inverse_kinematics(SE3(11.38,7.191,1.130) * SE3.RPY(-1.455,0.761,1.429, order='xyz'), q_step4)
+        # q_step6 = self.inverse_kinematics(SE3(7.571,6.288,0.968) * SE3.RPY(-1.408,-1.222,1.766, order='xyz'), q_step5)
+        
+
+        q_step2 = self.inverse_kinematics(SE3(8.8,3.7,1.0) * SE3.RPY( 1.570796, -0.785398, -1.570796, order='xyz'), q_step1)
+        q_step3 = self.inverse_kinematics(SE3(10.3,5.0,1.1) * SE3.RPY( 1.570796,  0.785398, -1.570796, order='xyz'), q_step2)
+        q_step4 = self.inverse_kinematics(SE3(10.4,6.2,1.7) * SE3.RPY(-1.570796,  0.785398,  1.570796, order='xyz'), q_step3)
+        q_step5 = self.inverse_kinematics(SE3(11.4,7.2,1.1) * SE3.RPY(-1.570796,  0.785398,  1.570796, order='xyz'), q_step4)
+        q_step6 = self.inverse_kinematics(SE3(7.5,6.5,1.0) * SE3.RPY(-1.570796, -1.570796,  1.570796, order='xyz'), q_step5)
+        
+        q_step7 = q_step1 # return to initial
+        
+        # Calculate trajectories
+        q_traj1   = rtb.jtraj(q_step1, q_step2, 15).q
+        q_traj2   = rtb.jtraj(q_step2, q_step3, 15).q
+        q_traj3   = rtb.jtraj(q_step3, q_step4, 15).q
+        q_traj4   = rtb.jtraj(q_step4, q_step5, 15).q
+        q_traj5   = rtb.jtraj(q_step5, q_step6, 15).q
+        q_traj6   = rtb.jtraj(q_step6, q_step7, 15).q
+
+        
+        q_traj_final = np.concatenate([q_traj1, q_traj2, q_traj3, q_traj4, q_traj5, q_traj6], axis=0)
+        
+        fkine_result = [self.robot.fkine(q) @ SE3.Rx(pi/2) for q in q_traj_final]
+        
+        return fkine_result, q_traj_final # (15*7) = 105 steps
+        
+        
+        
+        
+
+
+        
 
 class Robot4Movement(MovementCalculation):
     """Controls Robot 4 (Packaging and loading robot) movements and task execution."""
@@ -318,3 +359,9 @@ class Robot4Movement(MovementCalculation):
         place on motorcycle
         """
         pass
+    
+if __name__ == "__main__":  # I sugest that you pause and zoom out alot to actualy see this test
+    
+    env = swift.Swift()
+    env.launch(realtime=True)
+    

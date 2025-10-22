@@ -93,12 +93,12 @@ class IRB_4600(DHRobot3D):
         
         # Axis ranges from ABB spec (convert degrees to radians)
         qlim = [
-            [-pi, +pi],                            # A1 ±180°
-            [-pi, deg2rad(150)],                              # A2 -100..+110
-            [deg2rad(-180), deg2rad(+75)],                            # A3 -60..+65
-            [deg2rad(-400), deg2rad(+400)],        # A4 ±200 (unlimited opt.)
+            [-2*pi, +2*pi],                            # A1 ±180°
+            [-0.9,1.6],                              # A2 -100..+110
+            [-1.2, 1.3],                            # A3 -60..+65
+            [-pi, pi],        # A4 ±200 (unlimited opt.)
             [deg2rad(-125), deg2rad(+120)],        # A5 ±120
-            [deg2rad(-400), deg2rad(+400)],        # A6 ±400
+            [-pi, pi],        # A6 ±400
         ]
         
         links = []

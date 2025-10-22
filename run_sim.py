@@ -15,6 +15,7 @@ import swift
 import roboticstoolbox as rtb
 from spatialmath import SE3
 from ir_support.robots.DHRobot3D import DHRobot3D
+from math import pi
 
 
 # ... (other imports like numpy, logging, flask etc., as needed)
@@ -85,6 +86,8 @@ class Run:
         self.ham       = ObjectNode(self.world.env, SE3(5.9, 4, 1    ), "Pizza's/Ham.stl"         , color=(1.00, 0.71, 0.76), name="ham")
         self.pepperoni = ObjectNode(self.world.env, SE3(6.8, 4, 1    ), "Pizza's/Pepperoni.stl"   , color=(0.71, 0.20, 0.14), name="pepperoni")
         self.pineapple = ObjectNode(self.world.env, SE3(7.1, 4, 1.005), "Pizza's/Pineapple.stl"   , color=(1.00, 0.90, 0.39), name="pineapple")
+        self.box       = ObjectNode(self.world.env, SE3(7.5, 6.5, 1), "Pizza's/Pizza_Box2.stl"   , color=(1.0, 1.0, 1.0), name="box")
+        self.motorbike = ObjectNode(self.world.env, SE3(3.0, 8.0, 0.0) * SE3.Rz(pi), "Environment/Honda Hornet STL.stl", color=(0.8, 0.8, 0.8), name="motorbike")
         
         # Adding to the world
         self.pizza.add_to_world()
@@ -93,6 +96,8 @@ class Run:
         self.ham.add_to_world() 
         self.pepperoni.add_to_world() 
         self.pineapple.add_to_world()
+        self.box.add_to_world()
+        self.motorbike.add_to_world()
     
     def handle_calculations(self):
         """
@@ -258,7 +263,7 @@ class Run:
             case PS.THIRD_MOVE: 
                 self.pizza_stage_clock_helper(PS.ROBOT_3    , 46) # 115
             case PS.ROBOT_3: 
-                self.pizza_stage_clock_helper(PS.ROBOT_4    , 80)
+                self.pizza_stage_clock_helper(PS.ROBOT_4    , 90)
             case PS.ROBOT_4: 
                 self.pizza_stage_clock_helper(PS.MOTORCYCLE , 80)
             case PS.MOTORCYCLE: 
@@ -295,8 +300,8 @@ class Run:
             if self.pizza_stage == PS.ROBOT_1:
                 self.world.robot1.q = self.joint_dict.get("Robot 1 Movment")[self.OPERATION_Counter]
                 # Materilise sauce
-                if self.OPERATION_Counter == 51:
-                    self.sauce = ObjectNode(self.world.env, SE3(0.0, 0.0, 0.0), "Pizza's/Pizza_Sauce.stl", color=(0.698, 0.133, 0.133), name="Sauce")
+                if self.OPERATION_Counter == 49:                                                          # color=(0.698, 0.133, 0.133)
+                    self.sauce = ObjectNode(self.world.env, SE3(0.0, 0.0, 0.0), "Pizza's/Pizza_Sauce.stl", color=(115/255, 9/255, 9/255), name="Sauce")
                     self.sauce.attach_to(self.pizza, keep_world_pose=False)
                     self.sauce.set_local_to_parent(SE3(0, 0, 0.0075))
                     self.sauce.add_to_world()
@@ -330,7 +335,14 @@ class Run:
                         self.cheese.attach_to(self.pizza)
                         
             elif self.pizza_stage == PS.ROBOT_3:
-                self.world.robot3.q = self.joint_dict.get("Robot 3 Movment")[self.OPERATION_Counter]
+                fkine_result, q_traj = self.joint_dict.get("Robot 3 Movment")
+                self.world.robot3.q = q_traj[self.OPERATION_Counter]
+                
+                if 15 <= self.OPERATION_Counter <= 75:
+                    self.pizza.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 75:
+                        self.pizza.attach_to(self.box)
+                
             elif self.pizza_stage == PS.ROBOT_4:
                 self.world.robot4.q = self.joint_dict.get("Robot 4 Movment")[self.OPERATION_Counter]
             
