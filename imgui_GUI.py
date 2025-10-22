@@ -179,13 +179,13 @@ class GUIImGui:
         imgui.begin("Control Panel", flags=flags)
 
         # --- Header / status ---
-        imgui.text_colored("Industrial Robotics — Pizza Cell", 0.9, 0.9, 0.9)
+        imgui.text_colored("Industrial Robotics - Pizza Cell", 0.9, 0.9, 0.9)
         imgui.separator()
         # Light curtain + pause indicators
         if self.light_curtain_broken:
             imgui.text_colored("LIGHT CURTAIN TRIPPED", 1.0, 0.3, 0.3)
         if self._estop_latched:
-            imgui.text_colored("E-STOP LATCHED — requires Reset then Start", 1.0, 0.3, 0.3)
+            imgui.text_colored("E-STOP LATCHED - requires Reset then Start", 1.0, 0.3, 0.3)
         elif self.system_paused:
             imgui.text_colored("PAUSED", 1.0, 0.8, 0.0)
 
@@ -325,12 +325,11 @@ class GUIImGui:
                     se3 = f"SE3 for q={q}: [Placeholder]"  # Replace with actual SE3 computation
                     self._events.append(('print_se3', {'robot_id': rid, 'q': q, 'se3': se3}))
         
-        # --- Safety / status ---
-        imgui.separator()
-        imgui.text("Safety & Status")
-        imgui.checkbox("Light curtain broken (sim)", self._as_checkbox_ref('light_curtain_broken'))
-        imgui.same_line()
-        imgui.text_disabled("(you can wire this to your States each frame)")
+        # # --- Safety / status ---
+        # imgui.separator()
+        # imgui.text("Safety & Status")
+        # imgui.checkbox("Light curtain broken (sim)", self._as_checkbox_ref('light_curtain_broken'))
+        # imgui.same_line()
 
         # --- Quit ---
         imgui.separator()
@@ -396,8 +395,8 @@ if __name__ == "__main__":
     while True:
         gui.tick()
         events = gui.get_and_clear_events()
-        for evt, payload in events:
-            print(f"Event: {evt}, Payload: {payload}") # It's printing so much due to live updating joint location from sliders
+        # for evt, payload in events:
+        #     print(f"Event: {evt}, Payload: {payload}") # It's printing so much due to live updating joint location from sliders
         time.sleep(0.01)
         if not gui._window:
             break

@@ -309,7 +309,7 @@ class Run:
         # Disabled if estop or paused
         if self.OPERATION.is_running():
             
-            self.bird_latch == False
+            self.bird_latch = False
             
             # Assigning the precalculated joint angles to each of the robots
             if self.pizza_stage == PS.ROBOT_1:
