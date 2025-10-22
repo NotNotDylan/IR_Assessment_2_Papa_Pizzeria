@@ -345,7 +345,7 @@ class Run:
                 if 15 <= self.OPERATION_Counter <= 75:
                     self.pizza.set_pose(fkine_result[self.OPERATION_Counter])
                     if self.OPERATION_Counter == 75:
-                        self.pizza.attach_to(self.box)
+                        self.box.attach_to(self.pizza)
                 
             elif self.pizza_stage == PS.ROBOT_4:
 
@@ -355,7 +355,7 @@ class Run:
                 if 10 <= self.OPERATION_Counter <= 30:
                     self.box.set_pose(fkine_result[self.OPERATION_Counter])
                     if self.OPERATION_Counter == 30:
-                        self.box.attach_to(self.motorbike)
+                        self.motorbike.attach_to(self.pizza)
             
             # Anamates the conveyerbelt & moves pizza
             elif self.pizza_stage == PS.FIRST_MOVE or PS.SECOND_MOVE or PS.THIRD_MOVE:
@@ -363,7 +363,7 @@ class Run:
                 self.pizza.move_by(SE3.Tx(0.1/2))
                 
             elif self.pizza_stage == PS.MOTORCYCLE:
-                self.motorbike.move_by(SE3.Ty(0.02 * self.OPERATION_Counter))
+                self.pizza.move_by(SE3.Ty(0.02 * self.OPERATION_Counter))
             
             elif self.pizza_stage == PS.COMPLETED:
                 pass

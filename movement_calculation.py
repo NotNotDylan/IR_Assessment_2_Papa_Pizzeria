@@ -389,12 +389,6 @@ class Robot3Movement(MovementCalculation):
         return fkine_result, q_traj_final # (15*7) = 105 steps
         
         
-        
-        
-
-
-        
-
 class Robot4Movement(MovementCalculation):
     """Controls Robot 4 (Packaging and loading robot) movements and task execution."""
     def __init__(self, robot_model):
