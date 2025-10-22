@@ -269,7 +269,7 @@ class Run:
             case PS.ROBOT_3: 
                 self.pizza_stage_clock_helper(PS.ROBOT_4    , 90)
             case PS.ROBOT_4: 
-                self.pizza_stage_clock_helper(PS.MOTORCYCLE , 80)
+                self.pizza_stage_clock_helper(PS.MOTORCYCLE , 40)
             case PS.MOTORCYCLE: 
                 self.pizza_stage_clock_helper(PS.COMPLETED  , 50)
             case PS.COMPLETED:
@@ -352,10 +352,10 @@ class Run:
                 fkine_result, q_traj = self.joint_dict.get("Robot 4 Movment")
                 self.world.robot4.q = q_traj[self.OPERATION_Counter]
                 
-                if 15 <= self.OPERATION_Counter <= 75:
-                    self.pizza.set_pose(fkine_result[self.OPERATION_Counter])
-                    if self.OPERATION_Counter == 75:
-                        self.pizza.attach_to(self.box)
+                if 10 <= self.OPERATION_Counter <= 30:
+                    self.box.set_pose(fkine_result[self.OPERATION_Counter])
+                    if self.OPERATION_Counter == 30:
+                        self.box.attach_to(self.motorbike)
             
             # Anamates the conveyerbelt & moves pizza
             elif self.pizza_stage == PS.FIRST_MOVE or PS.SECOND_MOVE or PS.THIRD_MOVE:
@@ -363,7 +363,7 @@ class Run:
                 self.pizza.move_by(SE3.Tx(0.1/2))
                 
             elif self.pizza_stage == PS.MOTORCYCLE:
-                pass
+                self.pizza.move_by(SE3.Tx(0.02 * self.OPERATION_Counter))
             
             elif self.pizza_stage == PS.COMPLETED:
                 pass
