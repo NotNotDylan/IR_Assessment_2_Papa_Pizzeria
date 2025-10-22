@@ -72,6 +72,8 @@ class Run:
                 
             # Step the environment to update visuals
             self.world.env.step(self.dt)
+
+            self.bird.light_screen_e_stop()
             
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)
@@ -88,6 +90,7 @@ class Run:
         self.pineapple = ObjectNode(self.world.env, SE3(7.1, 4, 1.005), "Pizza's/Pineapple.stl"   , color=(1.00, 0.90, 0.39), name="pineapple")
         self.box       = ObjectNode(self.world.env, SE3(7.5, 6.5, 1), "Pizza's/Pizza_Box2.stl"   , color=(1.0, 1.0, 1.0), name="box")
         self.motorbike = ObjectNode(self.world.env, SE3(3.0, 8.0, 0.0) * SE3.Rz(pi), "Environment/Honda Hornet STL.stl", color=(0.8, 0.8, 0.8), name="motorbike")
+        self.bird = ObjectNode(self.world.env, SE3(5, 0, 2), "Environment/Bird.stl", color=(0.90, 0.83, 0.70), name="Pizza")
         
         # Adding to the world
         self.pizza.add_to_world()
@@ -98,6 +101,7 @@ class Run:
         self.pineapple.add_to_world()
         self.box.add_to_world()
         self.motorbike.add_to_world()
+        self.bird.add_to_world()
     
     def handle_calculations(self):
         """

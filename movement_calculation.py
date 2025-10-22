@@ -3,7 +3,7 @@ from manipulatable_object import ObjectNode
 import numpy as np
 from spatialmath import SE3
 import roboticstoolbox as rtb
-from roboticstoolbox import trapezoidal, DHRobot
+from roboticstoolbox import trapezoidal, DHRobot, jtraj
 from scipy import linalg
 from numpy import pi
 import swift
@@ -83,6 +83,53 @@ class MovementCalculation:
     #             if array[i][2] <= point[1] <= array[i][3]:
     #                 if array[i][4] <= point[2] <= array[i][5]:
     #                     return True
+
+    def trajectoryCheck(self, trajectory, r):
+        self.bounds_array = np.array([
+            [3.0, 4.0, 3.0, 4.2, 0.0, 1.48],
+            [4.0, 9.0, 3.4, 3.8, 0.0, 0.98],
+            [7.0, 8.0, 5.7435, 7.2435, 0.0, 0.98],
+            [10.483, 13.483, 6.3631, 9.3631, 0.0, 0.98],
+            [3.10, 7.32, 4.725, 4.775, 0.0, 2.98],
+            [5.6486, 6.0486, 6.2944, 6.6944, 0.0, 0.48],
+            [9.52, 9.92, 5.4, 5.8, 0.0, 0.48],
+            [4.4, 4.8, 3.85, 4.25, 0.0, 0.98],
+            [6.32, 6.72, 4.2, 4.6, 0.0, 0.98],
+            [6.0, 7.0, 3.875, 4.125, 0.0, 0.98]
+        ])
+
+        for q in trajectory.q:
+            allLinks = r.fkine_all(q)  # get all link transforms
+            for T in allLinks:
+                x, y, z = T.t
+                for zone in self.bounds_array:
+                    xmin, xmax, ymin, ymax, zmin, zmax = zone
+                    if xmin <= x <= xmax and ymin <= y <= ymax and zmin <= z <= zmax:
+                        return True
+        return False
+    
+    def trajectory(self,start_q,target_pose,steps):
+        q_target = self.ikine_LM(target_pose, q0=start_q, joint_limits=True).q
+        traj = jtraj(start_q, q_target, steps)
+
+        # Replan if trajectory crosses forbidden region
+        attempt = 0
+        while self.trajectoryCheck(traj, self): #and attempt < 10:
+            attempt += 1
+            print(f"Trajectory invalid — replanning (attempt {attempt})...")
+            q_guess = start_q + np.random.uniform(-0.1, 0.1, size=len(self.q))
+            q_target = self.ikine_LM(target_pose, q0=q_guess, joint_limits=True).q
+            traj = jtraj(start_q, q_target, steps)
+            print("Trying")
+
+        if attempt >= 10:
+            print("No valid trajectory found after 10 attempts.")
+            return
+
+        # Animate the valid trajectory
+        print("Animating valid trajectory...")
+        for q in traj.q:
+            self.q = q
     
     def collision_detected(self, point):
         bounds = self.bounds_array  # don't shadow "array"
@@ -122,7 +169,7 @@ class MovementCalculation:
             for i in range(steps-1):                     # Calculate velocity at discrete time step
                 J = self.robot.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
                 xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
-                xdot_angular = np.array([roll/(steps*delta_t), pitch/(steps*delta_t), yaw/(steps*delta_t)])                # keep orientation fixed
+                xdot_angular = np.array([0,0,0])                # keep orientation fixed
                 xdot_full = np.hstack((xdot_linear, xdot_angular))
                 q_dot = np.linalg.pinv(J) @ xdot_full
                 q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
@@ -162,8 +209,8 @@ class Robot1Movement(MovementCalculation):
         
         pizza_cord = self.pizza.xyz_of_node()
         
-        # Old method
-        # Joint anges at each step
+        # # Old method
+        # # Joint anges at each step
         q_step1 = self.robot.q  # initial configuration
         q_step2 = self.inverse_kinematics(SE3(pizza_cord[0] + 0.00, pizza_cord[1] + 0.12, pizza_cord[2] + 0.03) @ SE3.Ry(np.pi), q_step1)  # Three points of a triangle (circle)
         q_step3 = self.inverse_kinematics(SE3(pizza_cord[0] - 0.10, pizza_cord[1] - 0.06, pizza_cord[2] + 0.03) @ SE3.Ry(np.pi), q_step2)
@@ -178,7 +225,7 @@ class Robot1Movement(MovementCalculation):
         q_traj4 = rtb.jtraj(q_step4, q_step5, 7).q
         q_traj5 = rtb.jtraj(q_step5, q_step6, 30).q
         
-        # # SE3 end effector at each location for each step       
+        # SE3 end effector at each location for each step       
         # se3_step1 = self.forward_kinematics()  # initial SE3 configuration
         # se3_step2 = SE3(pizza_cord[0] + 0.00, pizza_cord[1] + 0.12, pizza_cord[2] + 0.03) # @ SE3.Ry(np.pi)
         # se3_step3 = SE3(pizza_cord[0] - 0.10, pizza_cord[1] - 0.06, pizza_cord[2] + 0.03) # @ SE3.Ry(np.pi)
