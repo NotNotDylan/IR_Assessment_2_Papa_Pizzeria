@@ -55,8 +55,6 @@ class World:
         self.pos3 = SE3(8.8, 3.6, 1.015)
         self.pos = 1
         self.sauce_placed = False
-        self.xp = 7.5
-        self.yp = 6.5
         self.meshes = []
         
 
@@ -69,7 +67,7 @@ class World:
         self.env.set_camera_pose([8, 14, 7], [8, 3, 0])
         
         # --Important meshes--
-        Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
+        Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table2.stl"),
                     color=(0.588, 0.294, 0.0))
         self.env.add(Table)
         
@@ -159,12 +157,11 @@ class World:
 
             self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0075), 
+                              pose = SE3(0, 0, (0.475905*2)+0.0075), 
                               color=(0.698, 0.133, 0.133))
-            self.env.add(self.sauce)
 
             self.cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese.stl"),
-                               pose = SE3(self.xp, self.yp, 1.0125),
+                               pose = SE3(0, 0, 1.0125),
                                color=(1.0, 0.78, 0.24))
             
             self.cheese_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese_Pile.stl"), 
@@ -175,7 +172,7 @@ class World:
 
             self.olives = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives.stl"), 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2) +0.0125), 
+                              pose = SE3(0, 0, (0.475905*2) +0.0125), 
                               color=(0.20, 0.20, 0.20))
             
             self.olive_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives_Pile.stl"), 
@@ -186,7 +183,7 @@ class World:
 
             self.ham = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Ham.stl"), 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+                              pose = SE3(0, 0, (0.475905*2)+0.0125), 
                               color=(1.0, 0.71, 0.76))
             self.ham_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni_Pileblend.stl"), 
                                     pose = SE3(5.9,4,1),
@@ -196,7 +193,7 @@ class World:
 
             self.pepperoni = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni.stl"), 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+                              pose = SE3(0, 0, (0.475905*2)+0.0125), 
                               color=(0.71, 0.20, 0.14))
             self.pepperoni_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni_Pileblend.stl"), 
                                     pose = SE3(6.8,4,1),
@@ -207,7 +204,7 @@ class World:
 
             self.pineapple = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple.stl"), 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
-                              pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
+                              pose = SE3(0, 0, (0.475905*2)+0.0125), 
                               color=(1.0, 0.90, 0.39))
             self.pineapple_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple_Pizza.stl"), 
                                     pose = SE3(7.1,4,1.005),
@@ -216,18 +213,30 @@ class World:
             
             
             self.melted_cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Melted_Cheese.stl"), 
-                              pose = SE3(self.xp, self.yp ,(0.475905*2)+0.01241), color=(1.0, 0.78, 0.25))
+                              pose = SE3(0, 0 ,(0.475905*2)+0.01241), color=(1.0, 0.78, 0.25))
             
 
             self.box = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Box2.stl"),
-                                pose = SE3(self.xp, self.yp, 1), 
+                                pose = SE3(7.5, 6.5, 1) @ SE3.Rz(pi/2), 
                                 color=(1.0, 1.0, 1.0))
             self.env.add(self.box)
 
-            self.motorbike = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Honda Hornet STL.stl"),
-                                pose = SE3(3, 8.0, 0.0).A @ spb.trotz(pi),
+            self.motorbike = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Bike.stl"),
+                                pose =  SE3(5,8.5,0) @ SE3.Rz(pi),
                                 color=(0.8,0.8,0.8))
             self.env.add(self.motorbike)
+
+            self.button = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "e-STOP.stl"),
+                                pose =  SE3(1.75,0,1.25) @ SE3.Rz(-pi/2),
+                                color=(1,0,0))
+            self.env.add(self.button)
+
+            self.fire_extinguisher = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Fire_extinguisher.stl"),
+                                pose =  SE3(12.5,6.5,0),
+                                color=(1,0,0),
+                                scale=(0.1,0.1,0.1))
+            self.env.add(self.fire_extinguisher)
+
 
             # self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
             #               pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), color=(0.90, 0.83, 0.70))
@@ -272,8 +281,8 @@ class World:
         #     [3.10, 7.32, 4.725, 4.775, 0.0, 3.0],
         #     [5.6486, 6.0486, 6.2944, 6.6944, 0.0, 0.5],
         #     [9.52, 9.92, 5.4, 5.8, 0.0, 0.5],
-        #     [4.4, 4.8, 3.85, 4.25, 0.0, 1.0],
-        #     [6.32, 6.72, 4.2, 4.6, 0.0, 1.0],
+        #     [4.4, 4.8, 3.85, 4.25, 0.0, 0.98],
+        #     [6.32, 6.72, 4.2, 4.6, 0.0, 0.98],
         #     [6.0, 7.0, 3.875, 4.125, 0.0, 1.0]
         # ])
         #

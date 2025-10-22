@@ -55,7 +55,8 @@ class Run:
         # Make initial pizza base
         self.pizza = ObjectNode(self.world.env, SE3(3.5, 3.6, 1.015), "Pizza's/Pizza_Base.stl", color=(0.90, 0.83, 0.70), name="Pizza")
         self.pizza.add_to_world()
-        
+        self.bird = ObjectNode(self.world.env, SE3(5, 0, 2), "Environment/Bird.stl", color=(0.90, 0.83, 0.70), name="Pizza")
+        self.bird.add_to_world()
         while self.running:
                         
             # Update states
@@ -72,6 +73,8 @@ class Run:
                 
             # Step the environment to update visuals
             self.world.env.step(self.dt)
+
+            self.bird.light_screen_e_stop()
             
             # Small sleep to prevent excessive CPU usage
             time.sleep(0.01)

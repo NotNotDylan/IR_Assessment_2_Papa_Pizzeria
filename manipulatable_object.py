@@ -114,6 +114,16 @@ class ObjectNode:
             raise TypeError("delta must be an SE3")
         self.set_pose(self.pose * delta, propagate=True)
 
+    def light_screen_e_stop(self):
+        x,y,z = self.xyz_of_node()
+        if 3.10 <= x <= 7.32 and 4.725 <= y <= 4.85 and 0 <= z <=3:
+            print("collision")
+            self.move_by(SE3(0,0.1,0))
+        else:
+            self.move_by(SE3(0,0.1,0))
+
+
+
     def attach_to(self, parent: 'ObjectNode', keep_world_pose: bool = True) -> None:
         """
         Attach this node under `parent`.
@@ -200,9 +210,11 @@ if __name__ == "__main__":  # I sugest that you pause and zoom out alot to actua
     
     base = ObjectNode(env, SE3(0.0, 0.0, 0.0), "IRB_4600/Base.stl", color=(0.5,0.5,0.5,1.0), name="PillarA")
     arm  = ObjectNode(env, SE3(0.6, 0.4, 0.2), "IRB_4600/Link_1.stl",    color=(0.8,0.2,0.2,1.0), name="ArmOnA")
+    bird = ObjectNode(env, SE3(0,0,0), "Environment/Bird.stl", color=(0,0,0))
 
     base.add_to_world()
     arm.add_to_world()
+    bird.add_to_world()
 
     # Attach the arm to the pillar, preserving its current placement
     arm.attach_to(base, keep_world_pose=True)
