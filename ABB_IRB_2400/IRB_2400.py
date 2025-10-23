@@ -6,7 +6,7 @@ import swift
 import roboticstoolbox as rtb
 import spatialmath.base as spb
 from spatialmath import SE3
-from spatialgeometry import Arrow
+from spatialgeometry import Axes
 
 from ir_support.robots.DHRobot3D import DHRobot3D
 
@@ -99,6 +99,54 @@ class IRB2400(DHRobot3D):
         return links
 
     # ------------------------------
+    def visualise_DH_links(self, env: swift.Swift, axis_length: float = 0.15):
+        """
+        Visualise each DH frame as an RGB axis triad within the provided Swift environment.
+
+        Parameters
+        ----------
+        env : swift.Swift
+            The active Swift environment the robot has been added to.
+        axis_length : float, optional
+            Length of each axis vector in metres.
+        """
+        if not isinstance(env, swift.Swift):
+            raise TypeError("Environment must be a Swift instance.")
+
+        transforms = self._get_transforms(self.q)
+        existing_axes = getattr(self, "_dh_axes", [])
+
+        if existing_axes:
+            for axes_obj, T in zip(existing_axes, transforms):
+                axes_obj.length = axis_length
+                axes_obj.T = T
+                if not axes_obj._added_to_swift:
+                    env.add(axes_obj)
+        else:
+            self._dh_axes = []
+            for T in transforms:
+                axes_obj = Axes(length=axis_length, pose=SE3(T))
+                env.add(axes_obj)
+                self._dh_axes.append(axes_obj)
+
+        self._dh_axes_env = env
+        self._update_dh_axes()
+        return self._dh_axes
+
+    def _update_dh_axes(self):
+        """Synchronise stored DH frame axes with the current robot configuration."""
+        if not hasattr(self, "_dh_axes"):
+            return
+
+        transforms = self._get_transforms(self.q)
+        for axes_obj, T in zip(self._dh_axes, transforms):
+            axes_obj.T = T
+
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        if name in {"q", "base"} and hasattr(self, "_dh_axes"):
+            self._update_dh_axes()
+
     def test(self):
         """
         Smoke-test: add to Swift, jog a bit, then pause.
@@ -107,12 +155,13 @@ class IRB2400(DHRobot3D):
         env.launch(realtime=True)
 
         self.add_to_env(env)
+        self.visualise_DH_links(env)
 
         q_goal = [self.q[i] - pi/8 for i in range(self.n)]
         qtraj = rtb.jtraj(self.q, q_goal, 20).q
         for q in qtraj:
             self.q = q
-            fig = self.plot(self.q)
+            # fig = self.plot(self.q)
             env.step(0.02)
         time.sleep(2)
         # env.hold()     

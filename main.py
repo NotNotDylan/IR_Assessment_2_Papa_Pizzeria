@@ -42,7 +42,7 @@ def main():
     
     # Initialize GUI and safety systems
     gui = GUIImGui()
-    estop = ExternalEStop(port='COM3', baud=115200, ex_estop_connected=True) # Will try auto detect if no port asserted
+    estop = ExternalEStop(port='COM3', baud=115200, ex_estop_connected=False) # Will try auto detect if no port asserted
 
     robots_dict = {
         1: adapter(world.robot1),
