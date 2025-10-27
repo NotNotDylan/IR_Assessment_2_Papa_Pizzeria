@@ -1,5 +1,6 @@
 from manipulatable_object import ManipulatableObject
-
+from pathlib import Path
+import os
 import swift
 import roboticstoolbox as rtb
 from ir_support import UR3
@@ -19,9 +20,25 @@ import numpy as np
 import threading
 from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHRobotPlot
 
+script_dir = Path(__file__).parent.resolve()
+swift_root = Path(script_dir.drive + "/").resolve()
+os.chdir(swift_root)
 
+def swift_prefix_from_windows_path(p: Path) -> str:
+    """
+    Turn 'C:/foo/bar' -> 'foo/bar/'
+    This is what Swift's /retrieve/ endpoint expects.
+    """
+    s = p.as_posix()
+    if ":" in s:                # strip drive like 'C:'
+        s = s.split(":", 1)[1]
+    s = s.lstrip("/")           # no leading slash
+    return s + ("/" if not s.endswith("/") else "")
 
+env_prefix = swift_prefix_from_windows_path(script_dir / "Environment")
+pizza_prefix = swift_prefix_from_windows_path(script_dir / "Pizza's")
 class World:
+    
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
@@ -77,113 +94,113 @@ class World:
         
         if environment_objects == True:
             # Walls
-            wall = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Wall.stl"),
-                        color=(1.0,1.0,1.0,1.0))
+            wall = Mesh(filename=env_prefix + "Wall.stl",
+                         color=(1.0,1.0,1.0,1.0))
             self.env.add(wall)
 
-            floor = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Floor.stl"),
-                        color=(1.0,1.0,0.0,1.0))
+            floor = Mesh(filename=env_prefix + "Floor.stl",
+                         color=(1.0,1.0,0.0,1.0))
             self.env.add(floor)
 
-            Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.3.stl"),
-                       color=(0.5,0.5,0.5,1.0))
+            Conveyer_One = Mesh(filename=env_prefix +  "First_Conveyer2.0.3.stl",
+                                color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_One)
 
-            Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table.stl"),
+            Table = Mesh(filename=env_prefix +  "Table.stl",
                         color=(0.588, 0.294, 0.0))
             self.env.add(Table)
             
-            Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
+            Pizza_Oven = Mesh(filename=env_prefix +  "Pizza_Oven2.stl",
                         color=(0.886,0.447,0.357,1.0))
             self.env.add(Pizza_Oven)
 
-            Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
+            Light_Fence_Post = Mesh(filename=env_prefix + "Light_Fence_Post.stl",
                         color=(0.1,0.1,0.1,1.0))
             self.env.add(Light_Fence_Post)
             
             #DYALN
-            Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_1 = Mesh(filename=env_prefix +  "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(5.8486, 6.4944, 0), scale=[1,1,0.5])
             self.env.add(Pillar_1)
 
             #AIDAN
-            Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_2 = Mesh(filename=env_prefix +  "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(9.72, 5.6, 0), scale=[1,1,0.5])
             self.env.add(Pillar_2)
 
             #UR3
-            Pillar_3 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_3 = Mesh(filename=env_prefix +  "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(4.6, 4.05, 0))
             self.env.add(Pillar_3)
 
             #AKAAL
-            Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_4 = Mesh(filename=env_prefix + "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
 
-            Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Toppings_Table2.stl"),
+            Toppings_Table = Mesh(filename=env_prefix + "Toppings_Table2.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
             self.env.add(Toppings_Table)
             
-            self.plate = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+            self.plate = Mesh(filename=env_prefix + "Conveyor_Movement.stl", 
                           pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
             self.env.add(self.plate)
 
-            self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+            self.plate2 = Mesh(filename=env_prefix + "Conveyor_Movement.stl", 
                           pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
             self.env.add(self.plate2)
 
-            self.pizza = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Base.stl"), 
+            self.pizza = Mesh(filename=pizza_prefix + "Pizza_Base.stl", 
                           #pose = SE3(self.x_pizza, self.y_pizza, self.z_pizza), 
                           #pose = SE3(7.5, 6.5, 0.475905*2),
                           pose = SE3(self.xp, self.yp, (0.475905*2)),
                           color=(0.90, 0.83, 0.70))
             self.env.add(self.pizza)
 
-            self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
+            self.sauce = Mesh(filename=pizza_prefix + "Pizza_Sauce.stl", 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
                               pose = SE3(self.xp, self.yp, (0.475905*2)+0.0075), 
                               color=(0.698, 0.133, 0.133))
             self.env.add(self.sauce)
 
-            self.cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese.stl"),
+            self.cheese = Mesh(filename=pizza_prefix + "Pizza_Cheese.stl",
                                pose = SE3(self.xp, self.yp, 1.0125),
                                color=(1.0, 0.78, 0.24))
 
-            self.olives = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives.stl"), 
+            self.olives = Mesh(filename=pizza_prefix + "Olives.stl", 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
                               pose = SE3(self.xp, self.yp, (0.475905*2) +0.0125), 
                               color=(0.20, 0.20, 0.20))
             self.env.add(self.olives)
 
-            self.ham = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Ham.stl"), 
+            self.ham = Mesh(filename=pizza_prefix + "Ham.stl", 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
                               pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
                               color=(1.0, 0.71, 0.76))
             self.env.add(self.ham)
 
-            self.pepperoni = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni.stl"), 
+            self.pepperoni = Mesh(filename=pizza_prefix + "Pepperoni.stl", 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
                               pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
                               color=(0.71, 0.20, 0.14))
             self.env.add(self.pepperoni)
 
-            self.pineapple = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple.stl"), 
+            self.pineapple = Mesh(filename=pizza_prefix + "Pineapple.stl", 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
                               pose = SE3(self.xp, self.yp, (0.475905*2)+0.0125), 
                               color=(1.0, 0.90, 0.39))
             self.env.add(self.pineapple)
             
-            self.melted_cheese = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Melted_Cheese.stl"), 
+            self.melted_cheese = Mesh(filename=pizza_prefix + "Melted_Cheese.stl", 
                               pose = SE3(self.xp, self.yp ,(0.475905*2)+0.01241), color=(1.0, 0.78, 0.25))
             self.env.add(self.melted_cheese)
 
-            self.box = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Box.stl"),
+            self.box = Mesh(filename=pizza_prefix + "Pizza_Box.stl",
                                 pose = SE3(self.xp, self.yp, 0.95181), 
                                 color=(1.0, 1.0, 1.0))
             self.env.add(self.box)
 
-            self.motorbike = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Honda Hornet STL.stl"),
+            self.motorbike = Mesh(filename=env_prefix + "Honda Hornet STL.stl",
                                 pose = SE3(3, 8.0, 0.0).A @ spb.trotz(pi),
                                 color=(0.8,0.8,0.8))
             self.env.add(self.motorbike)
