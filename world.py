@@ -23,7 +23,20 @@ from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHR
 script_dir = Path(__file__).parent.resolve()
 swift_root = Path(script_dir.drive + "/").resolve()
 os.chdir(swift_root)
-
+def retarget_robot_meshes(robot, folder_prefix: str):
+    """
+    For every Mesh on every link, replace the filename with <folder_prefix> + basename.
+    This strips any 'C:/...' and points Swift at your workspace copies.
+    """
+    for link in getattr(robot, "links", []):
+        geoms = getattr(link, "geometry", None)
+        if not geoms:
+            continue
+        if not isinstance(geoms, (list, tuple)):
+            geoms = [geoms]
+        for g in geoms:
+            if isinstance(g, Mesh) and getattr(g, "filename", None):
+                g.filename = folder_prefix + Path(str(g.filename)).name
 def swift_prefix_from_windows_path(p: Path) -> str:
     """
     Turn 'C:/foo/bar' -> 'foo/bar/'
@@ -37,6 +50,9 @@ def swift_prefix_from_windows_path(p: Path) -> str:
 
 env_prefix = swift_prefix_from_windows_path(script_dir / "Environment")
 pizza_prefix = swift_prefix_from_windows_path(script_dir / "Pizza's")
+UR3_PREFIX      = "Robots/UR3/"
+IRB4600_PREFIX  = "Robots/IRB_4600/"
+IRB2400_PREFIX  = "Robots/ABB_IRB_2400/"
 class World:
     
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
@@ -273,15 +289,19 @@ class World:
         
         # self.env.add(self.robot_test)
         self.robot1.base = SE3(4.6,4.05,1.0)
+        retarget_robot_meshes(self.robot1, UR3_PREFIX)
         self.robot1.add_to_env(self.env)
 
-        # self.robot2.base = SE3(6.52,4.4,1.0)
-        # self.robot2.add_to_env(self.env)
+        self.robot2.base = SE3(6.52,4.4,1.0)
+        retarget_robot_meshes(self.robot2)
+        self.robot2.add_to_env(self.env)
         
         self.robot3.base = SE3(9.72,5.6,0.5)
+        retarget_robot_meshes(self.robot3, IRB4600_PREFIX)
         self.robot3.add_to_env(self.env)
 
         self.robot4.base = SE3(5.84, 6.49, 0.5)
+        retarget_robot_meshes(self.robot4, IRB2400_PREFIX)
         self.robot4.add_to_env(self.env)
         
         cyl_collision = CylindricalDHRobotPlot(self.robot3, cylinder_radius=0.05,color=(1,0,0,1))
