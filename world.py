@@ -1,11 +1,12 @@
 from manipulatable_object import ManipulatableObject
 from pathlib import Path
 import os
+import inspect
 import swift
 import roboticstoolbox as rtb
-from ir_support import UR3
-from ABB_IRB_2400.IRB_2400 import IRB2400
-from IRB_4600.ABB_IRB_4600 import IRB_4600
+from Robots.UR3.UR3 import UR3
+from Robots.ABB_IRB_2400.IRB_2400 import IRB2400
+from Robots.IRB_4600.ABB_IRB_4600 import IRB_4600
 #from Auboi5Final.i5Init import AuboI5
 from spatialmath import SE3
 from spatialmath.base import *
@@ -13,9 +14,7 @@ from math import pi
 import time 
 from spatialgeometry import Sphere, Arrow, Mesh, Cuboid, Cylinder
 import spatialgeometry as geometry
-import os
 import spatialmath.base as spb
-from spatialmath import SE3
 import numpy as np
 import threading
 from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHRobotPlot
@@ -23,43 +22,77 @@ from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHR
 script_dir = Path(__file__).parent.resolve()
 swift_root = Path(script_dir.drive + "/").resolve()
 os.chdir(swift_root)
-def retarget_robot_meshes(robot, folder_prefix: str):
-    """
-    For every Mesh on every link, replace the filename with <folder_prefix> + basename.
-    This strips any 'C:/...' and points Swift at your workspace copies.
-    """
-    for link in getattr(robot, "links", []):
-        geoms = getattr(link, "geometry", None)
-        if not geoms:
-            continue
-        if not isinstance(geoms, (list, tuple)):
-            geoms = [geoms]
-        for g in geoms:
-            if isinstance(g, Mesh) and getattr(g, "filename", None):
-                g.filename = folder_prefix + Path(str(g.filename)).name
-def swift_prefix_from_windows_path(p: Path) -> str:
-    """
-    Turn 'C:/foo/bar' -> 'foo/bar/'
-    This is what Swift's /retrieve/ endpoint expects.
-    """
-    s = p.as_posix()
-    if ":" in s:                # strip drive like 'C:'
-        s = s.split(":", 1)[1]
-    s = s.lstrip("/")           # no leading slash
-    return s + ("/" if not s.endswith("/") else "")
 
-env_prefix = swift_prefix_from_windows_path(script_dir / "Environment")
-pizza_prefix = swift_prefix_from_windows_path(script_dir / "Pizza's")
-UR3_PREFIX      = "Robots/UR3/"
-IRB4600_PREFIX  = "Robots/IRB_4600/"
-IRB2400_PREFIX  = "Robots/ABB_IRB_2400/"
+def to_swift_rel(pathlike) -> str:
+    """
+    Turn e.g.
+        C:\\AkaalBranch\\IR_Assessment_2_Papa_Pizzeria\\Robots\\UR3\\base_ur3.dae
+    into
+        AkaalBranch/IR_Assessment_2_Papa_Pizzeria/Robots/UR3/base_ur3.dae
+    which is what Swift expects under /retrieve/.
+    """
+    s = str(pathlike).replace("\\", "/")
+    # handle "C:/..." or "c:/..."
+    if len(s) >= 3 and s[1] == ":" and s[2] == "/":
+        s = s[3:]
+    return s.lstrip("/")
+
+env_prefix  = to_swift_rel(script_dir / "Environment") + "/"
+pizza_prefix = to_swift_rel(script_dir / "Pizza's") + "/"
+robot_root   = to_swift_rel(script_dir / "Robots") + "/"
+ur3_prefix   = robot_root + "UR3/"
+irb4600_prefix = robot_root + "IRB_4600/"
+irb2400_prefix = robot_root + "ABB_IRB_2400/"
+def rewrite_all_mesh_paths(obj, forced_prefix: str | None = None, _seen=None):
+    """
+    Walks the object and makes every Mesh.filename Swift-friendly.
+    If forced_prefix is given, we keep only the file name and stick it
+    under that prefix.
+    """
+    from spatialgeometry import Mesh as SGMesh
+
+    if _seen is None:
+        _seen = set()
+    oid = id(obj)
+    if oid in _seen:
+        return
+    _seen.add(oid)
+
+    # direct mesh
+    if isinstance(obj, SGMesh) and getattr(obj, "filename", None):
+        original = str(obj.filename)
+        rel = to_swift_rel(original)
+        if forced_prefix:
+            rel = forced_prefix + Path(rel).name
+        obj.filename = rel
+        return
+
+    # containers
+    if isinstance(obj, (list, tuple, set)):
+        for x in obj:
+            rewrite_all_mesh_paths(x, forced_prefix, _seen)
+        return
+    if isinstance(obj, dict):
+        for x in obj.values():
+            rewrite_all_mesh_paths(x, forced_prefix, _seen)
+        return
+
+    # generic object: walk attributes
+    for attr in dir(obj):
+        if attr.startswith("_"):
+            continue
+        try:
+            value = getattr(obj, attr)
+        except Exception:
+            continue
+        rewrite_all_mesh_paths(value, forced_prefix, _seen)
 class World:
     
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
         self.env = swift.Swift()   # The Swift environment instance
         self.robot_test = None   # Robot I am using to temporaly test the GUI
-        self.robot1 = UR3()         # Robot performing sauce application
+        self.robot1 = None         # Robot performing sauce application
         self.robot2 = None        # Robot performing topping placement
         self.robot3 = IRB_4600()        # Robot handling oven loading/unloading
         self.robot4 = IRB2400()        # Robot packaging and loading pizza on bike
@@ -279,35 +312,26 @@ class World:
             # Oven
             pass
         
-    
-    def setup_robots_and_objects(self):
-        """Load robots, conveyors, and objects into the environment."""
-        # TODO: Initialize robot models (from RTB or custom DH parameters)
-        # e.g., self.robot1 = rtb.models.DH.SomeRobotModel() or custom Robot class
-        # Position robots in the scene (adjust base if needed, e.g., robot1.base = SE3(x,y,z))
-        # Add robots to the Swift environment: self.env.add(self.robot1)
         
-        # self.env.add(self.robot_test)
-        self.robot1.base = SE3(4.6,4.05,1.0)
-        retarget_robot_meshes(self.robot1, UR3_PREFIX)
+    def setup_robots_and_objects(self):
+        # UR3
+        self.robot1 = UR3()
+        rewrite_all_mesh_paths(self.robot1, ur3_prefix)
+        self.robot1.base = SE3(4.6, 4.05, 1.0)
         self.robot1.add_to_env(self.env)
 
-        self.robot2.base = SE3(6.52,4.4,1.0)
-        retarget_robot_meshes(self.robot2)
-        self.robot2.add_to_env(self.env)
-        
-        self.robot3.base = SE3(9.72,5.6,0.5)
-        retarget_robot_meshes(self.robot3, IRB4600_PREFIX)
+        # IRB 4600
+        self.robot3.base = SE3(9.72, 5.6, 0.5)
+        rewrite_all_mesh_paths(self.robot3, irb4600_prefix)
         self.robot3.add_to_env(self.env)
-
+        # IRB 2400
         self.robot4.base = SE3(5.84, 6.49, 0.5)
-        retarget_robot_meshes(self.robot4, IRB2400_PREFIX)
+        rewrite_all_mesh_paths(self.robot4, irb2400_prefix)
         self.robot4.add_to_env(self.env)
+
         
-        cyl_collision = CylindricalDHRobotPlot(self.robot3, cylinder_radius=0.05,color=(1,0,0,1))
-        self.collisions = cyl_collision.create_cylinders()
-        self.env.add(self.collisions)
-        
+        cyl_collision = CylindricalDHRobotPlot(self.robot3, cylinder_radius=0.05, color=(1, 0, 0, 1))
+        self.env.add(cyl_collision.create_cylinders())        
         
         # TODO: Create conveyor belts and add to scene
         # e.g., conv1 = ConveyorBelt(start=SE3(...), end=SE3(...), speed=0.1)
@@ -404,7 +428,7 @@ class World:
             case 3:
                 self.t = float(self.env.sim_time)
                 if self.t - self.last_pizza_time >= pause_2:
-                    self.pizza_movement(pos=self.pos3,period=0.25)
+                    self.pizza_movement(pos=self.pos3,period=0.25) 
 
     def sauce_placement(self):
         if np.allclose((self.pizza.T), (SE3(self.pos1).A)):

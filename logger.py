@@ -1,4 +1,4 @@
-from states import States
+from states import State
 
 import logging
 import os
@@ -39,7 +39,7 @@ class Logger:
         self.event_log.info(message)
         print(f"[EVENT] {message}")  # also print to console for immediate feedback
     
-    def log_status(self, state: States, motions: list):
+    def log_status(self, state: State, motions: list):
         """Log periodic status of robots and objects (e.g., joint angles, object positions)."""
         # Example: log each robot's joint positions and each pizza status
         status_msg = ""
