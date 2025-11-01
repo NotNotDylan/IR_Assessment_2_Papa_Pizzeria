@@ -2,7 +2,7 @@ from manipulatable_object import ManipulatableObject
 
 import swift
 import roboticstoolbox as rtb
-from UR3 import UR3
+from ir_support import UR3
 from ABB_IRB_2400.IRB_2400 import IRB2400
 from IRB_4600.ABB_IRB_4600 import IRB_4600
 #from Auboi5Final.i5Init import AuboI5
@@ -18,31 +18,9 @@ from spatialmath import SE3
 import numpy as np
 import threading
 from ir_support import RectangularPrism, line_plane_intersection, CylindricalDHRobotPlot
-from pathlib import Path
 
-script_dir = Path(__file__).parent.resolve()
-swift_root = Path(script_dir.drive + "/").resolve()
-os.chdir(swift_root)
 
-def to_swift_rel(pathlike) -> str:
-    """
-    Turn e.g.
-        C:\\AkaalBranch\\IR_Assessment_2_Papa_Pizzeria\\Robots\\UR3\\base_ur3.dae
-    into
-        AkaalBranch/IR_Assessment_2_Papa_Pizzeria/Robots/UR3/base_ur3.dae
-    """
-    s = str(pathlike).replace("\\", "/")
-    # handle "C:/..." or "c:/..."
-    if len(s) >= 3 and s[1] == ":" and s[2] == "/":
-        s = s[3:]
-    return s.lstrip("/")
 
-env_prefix  = to_swift_rel(script_dir / "Environment") + "/"
-pizza_prefix = to_swift_rel(script_dir / "Pizza's") + "/"
-robot_root   = to_swift_rel(script_dir / "Robots") + "/"
-ur3_prefix   = robot_root + "UR3/"
-irb4600_prefix = robot_root + "IRB_4600/"
-irb2400_prefix = "ABB_IRB_2400/"
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
     def __init__(self):
