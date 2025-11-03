@@ -71,7 +71,6 @@ def main():
     # Begin GUI
     gui.bind_robots(robots_dict, default_robot=1)
     gui.start()
-
     # Initialize motion controllers for each robot, passing in robot models from world
     motions = [Robot1Movement(world.robot1), 
                Robot2Movement(world.robot2),
