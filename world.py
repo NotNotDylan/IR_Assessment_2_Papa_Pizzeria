@@ -21,8 +21,8 @@ from pathlib import Path
 
 script_dir = Path(__file__).parent.resolve()
 swift_root = Path(script_dir.drive + "/").resolve()
-os.chdir(swift_root)
-
+os.chdir(script_dir)
+"Swift changer"
 def to_swift_rel(pathlike) -> str:
     """
     Turn e.g.
@@ -35,6 +35,7 @@ def to_swift_rel(pathlike) -> str:
     if len(s) >= 3 and s[1] == ":" and s[2] == "/":
         s = s[3:]
     return s.lstrip("/")
+
 "Hardcoded Prefixes"
 env_prefix  = to_swift_rel(script_dir / "Environment") + "/"
 pizza_prefix = to_swift_rel(script_dir / "Pizza's") + "/"
@@ -42,6 +43,54 @@ robot_root   = to_swift_rel(script_dir / "Robots") + "/"
 ur3_prefix   = robot_root + "UR3/"
 irb4600_prefix = robot_root + "IRB_4600/"
 irb2400_prefix = robot_root + "ABB_IRB_2400/"
+aubo_prefix = robot_root + "AuboI5/"
+
+def fix_swift_mesh_paths(env):
+    # env.swift_objects = [obj, pose, obj, pose, ...]
+    for obj in env.swift_objects[0::2]:
+        # walk EVERYTHING inside that object and fix filenames
+        rewrite_all_mesh_paths(obj)
+
+def rewrite_all_mesh_paths(obj, forced_prefix: str | None = None, _seen=None):
+    from spatialgeometry import Mesh as SGMesh
+    from pathlib import Path
+
+    if _seen is None:
+        _seen = set()
+    oid = id(obj)
+    if oid in _seen:
+        return
+    _seen.add(oid)
+
+    # direct mesh
+    if isinstance(obj, SGMesh) and getattr(obj, "filename", None):
+        original = str(obj.filename)
+        rel = to_swift_rel(original)
+        if forced_prefix:
+            rel = forced_prefix + Path(rel).name
+        obj.filename = rel
+        print("rewrite →", obj.filename)
+        return
+
+    # containers
+    if isinstance(obj, (list, tuple, set)):
+        for x in obj:
+            rewrite_all_mesh_paths(x, forced_prefix, _seen)
+        return
+    if isinstance(obj, dict):
+        for x in obj.values():
+            rewrite_all_mesh_paths(x, forced_prefix, _seen)
+        return
+
+    # walk attributes (but keep _geometry!)
+    for attr in dir(obj):
+        if attr.startswith("_") and attr not in ("_geometry", "_geoms", "_geometrylist"):
+            continue
+        try:
+            value = getattr(obj, attr)
+        except Exception:
+            continue
+        rewrite_all_mesh_paths(value, forced_prefix, _seen)
 
 class World:
     """Simulation world: handles environment launch, and loading of robots, objects, and safety elements."""
@@ -90,30 +139,30 @@ class World:
         self.env.set_camera_pose([8, 14, 7], [8, 3, 0])
         
         # --Important meshes--
-        Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table2.stl"),
+        Table = Mesh(filename= env_prefix + "Table2.stl",
                     color=(0.588, 0.294, 0.0))
         self.env.add(Table)
         
-        Pizza_Oven = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pizza_Oven2.stl"),
+        Pizza_Oven = Mesh(filename= env_prefix + "Pizza_Oven2.stl",
                     color=(0.886,0.447,0.357,1.0))
         self.env.add(Pizza_Oven)
         
-        Toppings_Table = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Table_Toppings7.stl"),
+        Toppings_Table = Mesh(filename= env_prefix + "Table_Toppings7.stl",
                     color=(0.5,0.5,0.5,1.0), pose=SE3(0, 0, 0))
         self.env.add(Toppings_Table)
         
-        self.plate1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+        self.plate1 = Mesh(filename= env_prefix + "Conveyor_Movement.stl", 
                         pose = SE3(self.x ,self.y ,self.z), color=(0.25,0.25,0.25,1.0),scale=[1, 1, 1])
         self.env.add(self.plate1)
 
-        self.plate2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Conveyor_Movement.stl"), 
+        self.plate2 = Mesh(filename= env_prefix + "Conveyor_Movement.stl", 
                         pose = SE3(self.x+0.1 ,self.y ,self.z), color=(0.35,0.35,0.35,1.0),scale=[1, 1, 1])
         self.env.add(self.plate2)
         
         
         if environment_objects == True:
             # Walls
-            Conveyer_One = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "First_Conveyer2.0.3.stl"),
+            Conveyer_One = Mesh(filename= env_prefix + "First_Conveyer2.0.3.stl",
                        color=(0.5,0.5,0.5,1.0))
             self.env.add(Conveyer_One)
 
@@ -125,7 +174,7 @@ class World:
             #             color=(0.886,0.447,0.357,1.0))
             # self.env.add(Pizza_Oven)
 
-            Light_Fence_Post = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Light_Fence_Post.stl"),
+            Light_Fence_Post = Mesh(filename= env_prefix + "Light_Fence_Post.stl",
                         color=(0.1,0.1,0.1,1.0))
             self.env.add(Light_Fence_Post)
             
@@ -146,31 +195,31 @@ class World:
 
 
             #UNNEEDED
-            wall = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Wall.stl"),
+            wall = Mesh(filename= env_prefix + "Wall.stl",
                         color=(1.0,1.0,1.0,1.0))
             self.env.add(wall)
 
-            floor = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Floor.stl"),
+            floor = Mesh(filename= env_prefix + "Floor.stl",
                         color=(1.0,1.0,0.0,1.0))
             self.env.add(floor)
 
             #DYALN
-            Pillar_1 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_1 = Mesh(filename= env_prefix + "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(5.8486, 6.4944, 0), scale=[1,1,0.5])
             self.env.add(Pillar_1)
 
             #AIDAN
-            Pillar_2 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_2 = Mesh(filename= env_prefix + "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(9.72, 5.6, 0), scale=[1,1,0.5])
             self.env.add(Pillar_2)
 
             #UR3
-            Pillar_3 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_3 = Mesh(filename= env_prefix + "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(4.6, 4.05, 0))
             self.env.add(Pillar_3)
 
             #AKAAL
-            Pillar_4 = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Pillar.stl"),
+            Pillar_4 = Mesh(filename= env_prefix + "Pillar.stl",
                         color=(0.5,0.5,0.5,1.0), pose=SE3(6.52, 4.4, 0))
             self.env.add(Pillar_4)
             
@@ -182,44 +231,44 @@ class World:
             #               color=(0.90, 0.83, 0.70))
             # self.env.add(self.pizza)
 
-            self.sauce = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Sauce.stl"), 
+            self.sauce = Mesh(filename=pizza_prefix + "Pizza_Sauce.stl", 
                               #pose = SE3(7.5,6.5,(0.475905*2)+0.0075),
                               pose = SE3(0, 0, (0.475905*2)+0.0075), 
                               color=(0.698, 0.133, 0.133))
             
-            self.cheese_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pizza_Cheese_Pile.stl"), 
+            self.cheese_pile = Mesh(filename=pizza_prefix + "Pizza_Cheese_Pile.stl", 
                                     pose = SE3(6.5,4,1.004),
                                     color=(1.0, 0.78, 0.24))
             self.env.add(self.cheese_pile)
             
-            self.olive_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Olives_Pile.stl"), 
+            self.olive_pile = Mesh(filename=pizza_prefix + "Olives_Pile.stl", 
                                     pose = SE3(6.2,4,1),
                                     color=(0.20, 0.20, 0.20))
             self.env.add(self.olive_pile)
             
-            self.ham_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni_Pileblend.stl"), 
+            self.ham_pile = Mesh(filename=pizza_prefix + "Pepperoni_Pileblend.stl", 
                                     pose = SE3(5.9,4,1),
                                     color=(1.0, 0.71, 0.76))
             self.env.add(self.ham_pile)
             
-            self.pepperoni_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pepperoni_Pileblend.stl"), 
+            self.pepperoni_pile = Mesh(filename=pizza_prefix + "Pepperoni_Pileblend.stl", 
                                     pose = SE3(6.8,4,1),
                                     color=(0.71, 0.20, 0.14))
             self.env.add(self.pepperoni_pile)
             
-            self.pineapple_pile = Mesh(filename=os.path.join(os.path.dirname(__file__), "Pizza's", "Pineapple_Pizza.stl"), 
+            self.pineapple_pile = Mesh(filename=pizza_prefix + "Pineapple_Pizza.stl", 
                                     pose = SE3(7.1,4,1.005),
                                     color=(1.0, 0.90, 0.39))
             self.env.add(self.pineapple_pile)
             
             
 
-            self.button = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "e-STOP.stl"),
+            self.button = Mesh(filename= env_prefix + "e-STOP.stl",
                                 pose =  SE3(1.75,0,1.25) @ SE3.Rz(-pi/2),
                                 color=(1,0,0))
             self.env.add(self.button)
 
-            self.fire_extinguisher = Mesh(filename=os.path.join(os.path.dirname(__file__), "Environment", "Fire_extinguisher.stl"),
+            self.fire_extinguisher = Mesh(filename= env_prefix + "Fire_extinguisher.stl",
                                 pose =  SE3(12.5,6.5,0),
                                 color=(1,0,0),
                                 scale=(0.1,0.1,0.1))
@@ -282,15 +331,27 @@ class World:
         # self.env.add(self.robot_test)
         self.robot1.base = SE3(4.6,4.05,1.0) @ SE3.Rz(pi)
         self.robot1.add_to_env(self.env)
+        rewrite_all_mesh_paths(self.robot1, ur3_prefix)
 
         self.robot2.base = SE3(6.52,4.4,1.0)
         self.robot2.add_to_env(self.env)
-        
+        rewrite_all_mesh_paths(self.robot2, aubo_prefix)
+
         self.robot3.base = SE3(9.72,5.6,0.5)
         self.robot3.add_to_env(self.env)
+        rewrite_all_mesh_paths(self.robot3, irb4600_prefix)
 
         self.robot4.base = SE3(5.84, 6.49, 0.5)
         self.robot4.add_to_env(self.env)
+        rewrite_all_mesh_paths(self.robot4, irb2400_prefix)
+        
+        fix_swift_mesh_paths(self.env)
+
+
+        for o in self.env.swift_objects[0::2]:
+            if hasattr(o, "filename"):
+                print("swift obj:", o.filename)
+        self.env.step(0.0)
     
     '''def add_object(self, obj):
         """Add a manipulatable object (pizza, topping, etc.) to the environment and keep track of it."""
