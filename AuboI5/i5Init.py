@@ -37,7 +37,7 @@ class AuboI5(DHRobot3D):
             link3="L3V1",
             link4="L4V1",
             link5="L5V1",
-            link6="L6V1",
+            link6="RobotHand",
         )
 
         #inspection config
@@ -51,7 +51,7 @@ class AuboI5(DHRobot3D):
             spb.transl(0.0, 0.069, 0.5365) @spb.trotz(pi),                 # link3
             spb.transl(0.0, 0.0795, 0.9125) @ spb.trotz(pi), # link4
             spb.transl(0.0, 0.1275, 0.973),                  # link5
-            spb.transl(0.0, 0.1874, 1.021) @spb.trotz(pi),  # link6 (tool)
+            spb.transl(2.0, 0.1874, 1.021) @spb.trotz(pi),  # link6 (tool)
         ]
     
 
