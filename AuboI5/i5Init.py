@@ -37,7 +37,7 @@ class AuboI5(DHRobot3D):
             link3="L3V1",
             link4="L4V1",
             link5="L5V1",
-            link6="Aubo_GripperV1",
+            link6="Aubo_GripperV4",
         )
 
         #inspection config
