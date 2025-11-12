@@ -44,14 +44,14 @@ class MovementCalculation:
         self.ham       = ham      
         self.pepperoni = pepperoni
         self.pineapple = pineapple
-    
+    #unused
     def forward_kinematics(self, q=None):
         """Return the end-effector pose (SE3) for given joint angles q. If q not provided, uses robot's current q."""
         if q is None:
             q = self.robot.q  # current joint angles
         # Use RTB forward kinematics:
         return self.robot.fkine(q)
-    
+    #unused
     def inverse_kinematics(self, target_pose: SE3, q_seed=None):
         """Solve inverse kinematics for the robot to reach the target_pose. Returns joint angles solution."""
         # TODO: Use RTB's IK solver or implement one.
@@ -83,7 +83,7 @@ class MovementCalculation:
     #             if array[i][2] <= point[1] <= array[i][3]:
     #                 if array[i][4] <= point[2] <= array[i][5]:
     #                     return True
-
+#unused
     def trajectoryCheck(self, trajectory, r):
         self.bounds_array = np.array([
             [3.0, 4.0, 3.0, 4.2, 0.0, 1.48],
@@ -107,7 +107,7 @@ class MovementCalculation:
                     if xmin <= x <= xmax and ymin <= y <= ymax and zmin <= z <= zmax:
                         return True
         return False
-    
+   #unused 
     def trajectory(self,start_q,target_pose,steps):
         q_target = self.ikine_LM(target_pose, q0=start_q, joint_limits=True).q
         traj = jtraj(start_q, q_target, steps)
@@ -130,7 +130,7 @@ class MovementCalculation:
         print("Animating valid trajectory...")
         for q in traj.q:
             self.q = q
-    
+ #only used in RMRC but RMRC is unused in env code   
     def collision_detected(self, point):
         bounds = self.bounds_array  # don't shadow "array"
         x, y, z = float(point[0]), float(point[1]), float(point[2])
@@ -139,7 +139,7 @@ class MovementCalculation:
             if box[0] <= x <= box[1] and box[2] <= y <= box[3] and box[4] <= z <= box[5]:
                 return True
         return False
-                    
+  #unused but works in sweepingtest code                  
     def RMRC(self, inital_pos: SE3, next_pos: SE3, steps: int):
         # self._tool = None    
         self.robot.tool = self.robot.tool if isinstance(self.robot.tool, SE3) else SE3()  # ensure SE3     
@@ -258,7 +258,7 @@ class Robot2Movement(MovementCalculation):
         pick place topping
         Zero position
         """
-        # Getting initial cordanates
+        # Getting initial cordinates
         pizza_cord     = self.pizza.xyz_of_node()
         cheese_cord    = self.cheese.xyz_of_node()
         olives_cord    = self.olives.xyz_of_node()

@@ -109,7 +109,7 @@ class ExternalEStop:
                 continue
 
             try:
-                chunk = self._ser.read(128)
+                chunk = self._ser.read(128) #returns 128 bytes
             except Exception:
                 # read error -> drop connection and retry
                 self._ser = None
@@ -119,11 +119,11 @@ class ExternalEStop:
                 # idle: still check heartbeat timeout in check_stop()
                 continue
 
-            buf += chunk
+            buf += chunk #adds text chunk to bhuffer
             # process newline-terminated lines
-            while b"\n" in buf:
-                line, buf = buf.split(b"\n", 1)
-                msg = line.decode(errors="ignore").strip().upper()
+            while b"\n" in buf: #while theres a newline in the buffer
+                line, buf = buf.split(b"\n", 1) #splits once at first newline 
+                msg = line.decode(errors="ignore").strip().upper() #turns raw bytes into text
                 if not msg:
                     continue
 

@@ -68,13 +68,14 @@ class ObjectNode:
         self._T_parent_this: SE3 = SE3()
 
     # ----------- Convenience accessors -----------
-    @property
+    #pose attribnute with two dirferetn handlers for getting and setting
+    @property #getter
     def pose(self) -> SE3:
         # mesh.T may be an ndarray or SE3 depending on version; normalize to SE3
         T = self.mesh.T
         return T if isinstance(T, SE3) else SE3(T)
 
-    @pose.setter
+    @pose.setter #setter low level set for testing
     def pose(self, new_pose: SE3):
         if not isinstance(new_pose, SE3):
             raise TypeError("new_pose must be an SE3")
@@ -83,7 +84,7 @@ class ObjectNode:
             self.mesh.T = new_pose
         except Exception:
             self.mesh.T = new_pose.A
-    
+    #looks better
     def xyz_of_node(self):
         """Return the node's Cartesian position.
 
@@ -94,6 +95,7 @@ class ObjectNode:
         return self.pose.t
 
     # ----------- Core operations -----------
+    #sets pose with parent
     def set_pose(self, new_pose: SE3, propagate: bool = True) -> None:
         """Set absolute/world pose. If attached, update stored relative transform. Then propagate to children."""
         if not isinstance(new_pose, SE3):
@@ -189,7 +191,7 @@ class ObjectNode:
         for child in self.children:
             child.pose = self.pose * child._T_parent_this
             child._propagate_to_descendants()
-
+#is it a descendant of something
     def is_descendant_of(self, other: 'ObjectNode') -> bool:
         p = self.parent
         while p is not None:
@@ -201,7 +203,7 @@ class ObjectNode:
     def __repr__(self) -> str:
         return f"ObjectNode(name={self.name!r}, children={len(self.children)}, attached={self.parent is not None})"
 
-
+#test not in emv code
 if __name__ == "__main__":  # I sugest that you pause and zoom out alot to actualy see this test
     
     env = swift.Swift()

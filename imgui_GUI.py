@@ -113,8 +113,9 @@ class GUIImGui:
         if not self._window:
             glfw.terminate()
             raise RuntimeError("glfw.create_window() failed")
-
+#creates window context
         glfw.make_context_current(self._window)
+#creates GUI state
         imgui.create_context()
         self._impl = GlfwRenderer(self._window, attach_callbacks=True)
 
@@ -131,6 +132,7 @@ class GUIImGui:
         glfw.terminate()
 
     # ---------- PUBLIC API TO FEED STATUS ----------
+    #not necessary but feel cleaner
     def set_light_curtain(self, broken: bool):
         self.light_curtain_broken = bool(broken)
 
@@ -192,7 +194,7 @@ class GUIImGui:
         # --- E-STOP block ---
         imgui.separator()
         imgui.text("Emergency Controls")
-        col_push = imgui.push_style_color(imgui.COLOR_BUTTON, 0.8, 0.15, 0.15, 1.0)
+        col_push = imgui.push_style_color(imgui.COLOR_BUTTON, 0.8, 0.15, 0.15, 1.0) #unused due to bugs
         col_push_h = imgui.push_style_color(imgui.COLOR_BUTTON_HOVERED, 0.9, 0.2, 0.2, 1.0)
         col_push_a = imgui.push_style_color(imgui.COLOR_BUTTON_ACTIVE, 0.7, 0.1, 0.1, 1.0)
         if imgui.button("E-STOP", width=200, height=48):
@@ -339,6 +341,7 @@ class GUIImGui:
         imgui.end()
 
     # ---------- HELPERS ----------
+    #puts movement in queue allows to be called
     def _enqueue_jog(self, dx=0.0, dy=0.0, dz=0.0, droll=0.0, dpitch=0.0, dyaw=0.0):
         rid = self._active_robot
         if rid is None:
@@ -348,7 +351,7 @@ class GUIImGui:
              {'robot_id': rid, 'dx': dx, 'dy': dy, 'dz': dz,
               'droll': droll, 'dpitch': dpitch, 'dyaw': dyaw})
         )
-
+# syncs GUI setting with bool value
     def _as_checkbox_ref(self, attr_name: str):
         """
         Wrap a boolean attr to an ImGui checkbox-style pair (bool ref).
