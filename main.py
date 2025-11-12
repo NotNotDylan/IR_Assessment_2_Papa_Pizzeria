@@ -62,10 +62,10 @@ def main():
                Robot4Movement(world.robot4)]
     
     # Create the main runner and pass all components
-    runner = Run(world=world, gui=gui, estop=estop, motions=motions)
+    runner = Run(world=world, gui=gui, estop=estop, motions=motions) #holds lists
     
     # Start the main simulation loop (this will run until stopped)
-    runner.run_loop()
+    runner.run_loop() #loops through lists
     
     
 if __name__ == '__main__':

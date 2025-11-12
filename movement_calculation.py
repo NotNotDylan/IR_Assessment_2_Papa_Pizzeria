@@ -194,67 +194,67 @@ class MovementCalculation:
         
     #     return q_matrix
             
-    def RMRC(self, T_goal: SE3 | None = None, steps = 140):
-        dt = 0.05
-        camera_pose=((1.8, -1.8, 1.2), (0, 0, 0.8))
-        box_stl_path = None
-        damping = 2e-3
-        """
-        Run a simple RMRC move from current EE pose to T_goal.
-        - Damped least squares for robustness near singularities.
-        - Optional constant-orientation or ZYX rpy interpolation.
-        - Optional trimesh box inclusion test (if you give an STL path).
-        """
-        # --- environment ---
-        env = swift.Swift()
-        env.launch(realtime=True)
-        self.add_to_env(env)
+    # def RMRC(self, T_goal: SE3 | None = None, steps = 140):
+    #     dt = 0.05
+    #     camera_pose=((1.8, -1.8, 1.2), (0, 0, 0.8))
+    #     box_stl_path = None
+    #     damping = 2e-3
+    #     """
+    #     Run a simple RMRC move from current EE pose to T_goal.
+    #     - Damped least squares for robustness near singularities.
+    #     - Optional constant-orientation or ZYX rpy interpolation.
+    #     - Optional trimesh box inclusion test (if you give an STL path).
+    #     """
+    #     # --- environment ---
+    #     env = swift.Swift()
+    #     env.launch(realtime=True)
+    #     self.add_to_env(env)
 
-        env.set_camera_pose(*camera_pose)
+    #     env.set_camera_pose(*camera_pose)
 
-        # --- start/goal poses ---
-        q0 = np.asarray(self.q, dtype=float)
-        T1 = self.fkine(q0)
-        if T_goal is None:
-            T_goal = SE3(x1[0] + 0.25, x1[1] + 0.15, max(0.1, x1[2] + 0.10))
-        x1 = T1.t
-        x2 = T_goal.t
+    #     # --- start/goal poses ---
+    #     q0 = np.asarray(self.q, dtype=float)
+    #     T1 = self.fkine(q0)
+    #     if T_goal is None:
+    #         T_goal = SE3(x1[0] + 0.25, x1[1] + 0.15, max(0.1, x1[2] + 0.10))
+    #     x1 = T1.t
+    #     x2 = T_goal.t
 
-        # orientation interpolation (ZYX)
-        # rpy1 = np.array(T1.rpy(unit="rad", order="zyx"))
-        # rpy2 = np.array(T_goal.rpy(unit="rad", order="zyx"))
-        ang_rate = np.zeros(3)
+    #     # orientation interpolation (ZYX)
+    #     # rpy1 = np.array(T1.rpy(unit="rad", order="zyx"))
+    #     # rpy2 = np.array(T_goal.rpy(unit="rad", order="zyx"))
+    #     ang_rate = np.zeros(3)
 
-        # --- task-space path (trapezoidal scalar blend) ---
-        s = rtb.trapezoidal(0, 1, steps).q                 # (steps,)
-        X = x1[:, None] * (1 - s) + x2[:, None] * s        # (3, steps)
+    #     # --- task-space path (trapezoidal scalar blend) ---
+    #     s = rtb.trapezoidal(0, 1, steps).q                 # (steps,)
+    #     X = x1[:, None] * (1 - s) + x2[:, None] * s        # (3, steps)
 
-        # --- joint limits (vectorized clamp) ---
-        q_lo = np.array([get_limits(self, j)[0] for j in range(self.n)])
-        q_hi = np.array([get_limits(self, j)[1] for j in range(self.n)])
+    #     # --- joint limits (vectorized clamp) ---
+    #     q_lo = np.array([get_limits(self, j)[0] for j in range(self.n)])
+    #     q_hi = np.array([get_limits(self, j)[1] for j in range(self.n)])
 
-        # --- init path ---
-        q = np.empty((steps, self.n))
-        q[0] = np.clip(q0, q_lo, q_hi)
+    #     # --- init path ---
+    #     q = np.empty((steps, self.n))
+    #     q[0] = np.clip(q0, q_lo, q_hi)
 
-        # --- integrate RMRC + animate (single pass) ---
-        ee_points = [T1.t]
-        for i in range(steps - 1):
-            J = self.jacob0(q[i])  # 6x6
+    #     # --- integrate RMRC + animate (single pass) ---
+    #     ee_points = [T1.t]
+    #     for i in range(steps - 1):
+    #         J = self.jacob0(q[i])  # 6x6
 
-            # damped pseudoinverse: J^T (J J^T + λ^2 I)^-1
-            JJt = J @ J.T
-            pinv = J.T @ np.linalg.inv(JJt + (damping ** 2) * np.eye(J.shape[0]))
+    #         # damped pseudoinverse: J^T (J J^T + λ^2 I)^-1
+    #         JJt = J @ J.T
+    #         pinv = J.T @ np.linalg.inv(JJt + (damping ** 2) * np.eye(J.shape[0]))
 
-            xdot_lin = (X[:, i + 1] - X[:, i]) / dt
-            xdot = np.hstack((xdot_lin, ang_rate))  # (6,)
+    #         xdot_lin = (X[:, i + 1] - X[:, i]) / dt
+    #         xdot = np.hstack((xdot_lin, ang_rate))  # (6,)
 
-            q[i + 1] = np.clip(q[i] + dt * (pinv @ xdot), q_lo, q_hi)
+    #         q[i + 1] = np.clip(q[i] + dt * (pinv @ xdot), q_lo, q_hi)
 
-            # animate & record EE
-            self.q = q[i + 1]
-            ee_points.append(self.fkine(self.q).t)
-            env.step(dt)
+    #         # animate & record EE
+    #         self.q = q[i + 1]
+    #         ee_points.append(self.fkine(self.q).t)
+    #         env.step(dt)
 class Robot1Movement(MovementCalculation):
     """Controls Robot 1 (Sauce application robot) movements and task execution."""
     def __init__(self, robot_model):
