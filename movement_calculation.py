@@ -139,62 +139,122 @@ class MovementCalculation:
             if box[0] <= x <= box[1] and box[2] <= y <= box[3] and box[4] <= z <= box[5]:
                 return True
         return False
-  #unused but works in sweepingtest code                  
-    def RMRC(self, inital_pos: SE3, next_pos: SE3, steps: int):
-        # self._tool = None    
-        self.robot.tool = self.robot.tool if isinstance(self.robot.tool, SE3) else SE3()  # ensure SE3     
+                    
+    # def RMRC(self, inital_pos: SE3, next_pos: SE3, steps: int):
+    #     # self._tool = None    
+    #     self.robot.tool = self.robot.tool if isinstance(self.robot.tool, SE3) else SE3()  # ensure SE3     
         
-        T1 = inital_pos
-        x1 = T1.t
+    #     T1 = inital_pos
+    #     x1 = T1.t
 
-        T2 = next_pos
-        x2 = T2.t
+    #     T2 = next_pos
+    #     x2 = T2.t
 
-        roll, pitch, yaw = next_pos.rpy(unit="rad", order="zyx")
+    #     roll, pitch, yaw = next_pos.rpy(unit="rad", order="zyx")
 
-        delta_t = 0.05
+    #     delta_t = 0.05
 
-        x = np.zeros([3,steps])
-        s = trapezoidal(0,1,steps).q
+    #     x = np.zeros([3,steps])
+    #     s = trapezoidal(0,1,steps).q
 
-        for i in range(steps):
-            x[:,i] = x1*(1-s[i]) + s[i]*x2
+    #     for i in range(steps):
+    #         x[:,i] = x1*(1-s[i]) + s[i]*x2
 
-        for tryes in range(6):
-            q_matrix = np.zeros([steps, 6])
+    #     for tryes in range(6):
+    #         q_matrix = np.zeros([steps, 6])
 
-            q_matrix[0,:] = self.robot.ikine_LM(T1).q
+    #         q_matrix[0,:] = self.robot.ikine_LM(T1).q
 
-            # Finds path of robot movment (as joint positions)
-            for i in range(steps-1):                     # Calculate velocity at discrete time step
-                J = self.robot.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
-                xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
-                xdot_angular = np.array([0,0,0])                # keep orientation fixed
-                xdot_full = np.hstack((xdot_linear, xdot_angular))
-                q_dot = np.linalg.pinv(J) @ xdot_full
-                q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
+    #         # Finds path of robot movment (as joint positions)
+    #         for i in range(steps-1):                     # Calculate velocity at discrete time step
+    #             J = self.robot.jacob0(q_matrix[i, :])  # 6x6 full Jacobian
+    #             xdot_linear = (x[:, i+1] - x[:, i]) / delta_t  # 3x1
+    #             xdot_angular = np.array([0,0,0])                # keep orientation fixed
+    #             xdot_full = np.hstack((xdot_linear, xdot_angular))
+    #             q_dot = np.linalg.pinv(J) @ xdot_full
+    #             q_matrix[i+1,:] = q_matrix[i,:] + delta_t * q_dot
 
-            points = []  # collect all FK positions
+    #         points = []  # collect all FK positions
 
-            # Find's each joint position in the arm relative to world
-            for q in q_matrix:
-                # S = self.robot.fkine_path(q)
-                S = self.robot.fkine_all(q)   
-                for T in S:     
-                    point = T.t
-                    points.append(point)
+    #         # Find's each joint position in the arm relative to world
+    #         for q in q_matrix:
+    #             # S = self.robot.fkine_path(q)
+    #             S = self.robot.fkine_all(q)   
+    #             for T in S:     
+    #                 point = T.t
+    #                 points.append(point)
 
-            # Checks all joint positioins to see if they are within a colision box/bound
-            for i in range(len(points)):
-                if self.collision_detected(point=points[i]) == False:
-                    break
+    #         # Checks all joint positioins to see if they are within a colision box/bound
+    #         for i in range(len(points)):
+    #             if self.collision_detected(point=points[i]) == False:
+    #                 break
 
-            if tryes == 5:
-                print("RMRC failed to find trajectory in 6 tries")
+    #         if tryes == 5:
+    #             print("RMRC failed to find trajectory in 6 tries")
         
-        return q_matrix
+    #     return q_matrix
             
+    def RMRC(self, T_goal: SE3 | None = None, steps = 140):
+        dt = 0.05
+        camera_pose=((1.8, -1.8, 1.2), (0, 0, 0.8))
+        box_stl_path = None
+        damping = 2e-3
+        """
+        Run a simple RMRC move from current EE pose to T_goal.
+        - Damped least squares for robustness near singularities.
+        - Optional constant-orientation or ZYX rpy interpolation.
+        - Optional trimesh box inclusion test (if you give an STL path).
+        """
+        # --- environment ---
+        env = swift.Swift()
+        env.launch(realtime=True)
+        self.add_to_env(env)
 
+        env.set_camera_pose(*camera_pose)
+
+        # --- start/goal poses ---
+        q0 = np.asarray(self.q, dtype=float)
+        T1 = self.fkine(q0)
+        if T_goal is None:
+            T_goal = SE3(x1[0] + 0.25, x1[1] + 0.15, max(0.1, x1[2] + 0.10))
+        x1 = T1.t
+        x2 = T_goal.t
+
+        # orientation interpolation (ZYX)
+        # rpy1 = np.array(T1.rpy(unit="rad", order="zyx"))
+        # rpy2 = np.array(T_goal.rpy(unit="rad", order="zyx"))
+        ang_rate = np.zeros(3)
+
+        # --- task-space path (trapezoidal scalar blend) ---
+        s = rtb.trapezoidal(0, 1, steps).q                 # (steps,)
+        X = x1[:, None] * (1 - s) + x2[:, None] * s        # (3, steps)
+
+        # --- joint limits (vectorized clamp) ---
+        q_lo = np.array([get_limits(self, j)[0] for j in range(self.n)])
+        q_hi = np.array([get_limits(self, j)[1] for j in range(self.n)])
+
+        # --- init path ---
+        q = np.empty((steps, self.n))
+        q[0] = np.clip(q0, q_lo, q_hi)
+
+        # --- integrate RMRC + animate (single pass) ---
+        ee_points = [T1.t]
+        for i in range(steps - 1):
+            J = self.jacob0(q[i])  # 6x6
+
+            # damped pseudoinverse: J^T (J J^T + λ^2 I)^-1
+            JJt = J @ J.T
+            pinv = J.T @ np.linalg.inv(JJt + (damping ** 2) * np.eye(J.shape[0]))
+
+            xdot_lin = (X[:, i + 1] - X[:, i]) / dt
+            xdot = np.hstack((xdot_lin, ang_rate))  # (6,)
+
+            q[i + 1] = np.clip(q[i] + dt * (pinv @ xdot), q_lo, q_hi)
+
+            # animate & record EE
+            self.q = q[i + 1]
+            ee_points.append(self.fkine(self.q).t)
+            env.step(dt)
 class Robot1Movement(MovementCalculation):
     """Controls Robot 1 (Sauce application robot) movements and task execution."""
     def __init__(self, robot_model):
